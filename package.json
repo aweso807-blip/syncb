@@ -1,0 +1,14 @@
+{
+  "name": "youtube-watch-sync",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Real-time synchronized YouTube watch room",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.18.0"
+  }
+}

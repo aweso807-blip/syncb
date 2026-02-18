@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: syncb-backend
+    env: docker
+    plan: free
+    autoDeploy: true

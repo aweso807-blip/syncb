@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SyncTube</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://www.youtube.com/iframe_api"></script>
+  </head>
+  <body>
+    <main class="app">
+      <h1>SyncTube</h1>
+      <p class="hint">Watch one YouTube video in near real-time sync across devices.</p>
+
+      <section class="controls">
+        <label>
+          Room
+          <input id="roomId" placeholder="example-room" />
+        </label>
+        <label>
+          WebSocket Server URL
+          <input id="wsUrl" placeholder="wss://your-backend.example.com" />
+        </label>
+        <button id="joinBtn">Join</button>
+        <button id="beHostBtn" disabled>Become Host</button>
+      </section>
+
+      <section class="controls">
+        <label>
+          YouTube URL / ID
+          <input id="videoInput" placeholder="https://www.youtube.com/watch?v=..." />
+        </label>
+        <button id="loadVideoBtn" disabled>Load Video</button>
+      </section>
+
+      <p id="status">Disconnected</p>
+      <div id="player"></div>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>
