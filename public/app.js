@@ -6,13 +6,15 @@ const state = {
   player: null,
   joined: false,
   suppressPlayerEvents: false,
+  playerReady: false,
   latencyMs: 0,
   driftTimer: null
 };
 
+const BACKEND_WS_URL = "wss://syncb.onrender.com";
+
 const statusEl = document.getElementById("status");
 const roomIdEl = document.getElementById("roomId");
-const wsUrlEl = document.getElementById("wsUrl");
 const joinBtn = document.getElementById("joinBtn");
 const beHostBtn = document.getElementById("beHostBtn");
 const videoInput = document.getElementById("videoInput");
@@ -22,6 +24,10 @@ function setStatus(text) {
   statusEl.textContent = text;
 }
 
+function updateLoadButtonState() {
+  loadVideoBtn.disabled = !(isHost() && state.playerReady);
+}
+
 function isHost() {
   return state.clientId === state.hostId;
 }
@@ -29,22 +35,6 @@ function isHost() {
 function wsSend(payload) {
   if (!state.ws || state.ws.readyState !== WebSocket.OPEN) return;
   state.ws.send(JSON.stringify(payload));
-}
-
-function getWsUrl() {
-  const typed = wsUrlEl.value.trim();
-  if (typed) {
-    if (typed.startsWith("https://")) return `wss://${typed.slice("https://".length)}`;
-    if (typed.startsWith("http://")) return `ws://${typed.slice("http://".length)}`;
-    return typed;
-  }
-  const query = new URLSearchParams(location.search).get("ws");
-  if (query) {
-    if (query.startsWith("https://")) return `wss://${query.slice("https://".length)}`;
-    if (query.startsWith("http://")) return `ws://${query.slice("http://".length)}`;
-    return query;
-  }
-  return `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}`;
 }
 
 function parseVideoId(input) {
@@ -131,17 +121,15 @@ function startDriftCorrection() {
 }
 
 function connect(roomId) {
-  const wsUrl = getWsUrl();
-  localStorage.setItem("sync_ws_url", wsUrlEl.value.trim());
-  state.ws = new WebSocket(wsUrl);
+  state.ws = new WebSocket(BACKEND_WS_URL);
   state.roomId = roomId;
 
   state.ws.addEventListener("open", () => {
     state.joined = true;
     wsSend({ type: "join", roomId, clientId: state.clientId });
-    setStatus(`Connected to room "${roomId}" via ${wsUrl}`);
+    setStatus(`Connected to room "${roomId}"`);
     beHostBtn.disabled = false;
-    loadVideoBtn.disabled = !isHost();
+    updateLoadButtonState();
   });
 
   state.ws.addEventListener("close", () => {
@@ -152,7 +140,7 @@ function connect(roomId) {
   });
 
   state.ws.addEventListener("error", () => {
-    setStatus(`WebSocket failed. Check URL: ${wsUrl}`);
+    setStatus(`WebSocket failed: ${BACKEND_WS_URL}`);
   });
 
   state.ws.addEventListener("message", (event) => {
@@ -160,7 +148,7 @@ function connect(roomId) {
     if (msg.type === "room_state") {
       state.hostId = msg.hostId;
       setStatus(`Connected. Host: ${state.hostId === state.clientId ? "You" : "Another user"}`);
-      loadVideoBtn.disabled = !isHost();
+      updateLoadButtonState();
       applyRemoteState(msg.state);
       return;
     }
@@ -168,7 +156,7 @@ function connect(roomId) {
     if (msg.type === "host_changed") {
       state.hostId = msg.hostId;
       setStatus(`Host changed: ${msg.hostId === state.clientId ? "You are host" : "Another user"}`);
-      loadVideoBtn.disabled = !isHost();
+      updateLoadButtonState();
       return;
     }
 
@@ -193,7 +181,11 @@ function onYouTubeIframeAPIReady() {
       modestbranding: 1
     },
     events: {
-      onReady: () => setStatus("Player ready. Join a room."),
+      onReady: () => {
+        state.playerReady = true;
+        setStatus("Player ready. Join a room.");
+        updateLoadButtonState();
+      },
       onStateChange: (event) => {
         if (!isHost() || state.suppressPlayerEvents) return;
         if (event.data === YT.PlayerState.PLAYING) {
@@ -223,8 +215,6 @@ function onYouTubeIframeAPIReady() {
 
 window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
 
-wsUrlEl.value = localStorage.getItem("sync_ws_url") || "";
-
 joinBtn.addEventListener("click", () => {
   const roomId = roomIdEl.value.trim();
   if (!roomId) {
@@ -241,6 +231,10 @@ beHostBtn.addEventListener("click", () => {
 
 loadVideoBtn.addEventListener("click", () => {
   if (!isHost()) return;
+  if (!state.playerReady || !state.player) {
+    setStatus("Player is still loading. Try again in a moment.");
+    return;
+  }
   const videoId = parseVideoId(videoInput.value);
   if (!videoId) {
     setStatus("Enter a valid YouTube link or video ID.");
