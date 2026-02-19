@@ -8,8 +8,18 @@ const state = {
   suppressPlayerEvents: false,
   playerReady: false,
   latencyMs: 0,
-  driftTimer: null
+  driftTimer: null,
+  userCount: 0
 };
+
+// function getBackendWsUrl() {
+//   const forced = window.localStorage.getItem("syncb.wsUrl");
+//   if (forced) return forced;
+//   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+//   return `${protocol}//${window.location.host}`;
+// }
+
+// const BACKEND_WS_URL = getBackendWsUrl();
 
 const BACKEND_WS_URL = "wss://syncb.onrender.com";
 
@@ -19,9 +29,25 @@ const joinBtn = document.getElementById("joinBtn");
 const beHostBtn = document.getElementById("beHostBtn");
 const videoInput = document.getElementById("videoInput");
 const loadVideoBtn = document.getElementById("loadVideoBtn");
+const roomMetaEl = document.getElementById("roomMeta");
+const chatMessagesEl = document.getElementById("chatMessages");
+const chatInputEl = document.getElementById("chatInput");
+const sendChatBtn = document.getElementById("sendChatBtn");
 
 function setStatus(text) {
   statusEl.textContent = text;
+}
+
+function updateRoomMeta() {
+  roomMetaEl.textContent = `Users in room: ${state.userCount}`;
+}
+
+function appendChatMessage({ clientId, text }) {
+  const messageEl = document.createElement("p");
+  const sender = clientId === state.clientId ? "You" : `User ${clientId.slice(0, 6)}`;
+  messageEl.textContent = `${sender}: ${text}`;
+  chatMessagesEl.appendChild(messageEl);
+  chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
 }
 
 function updateLoadButtonState() {
@@ -134,7 +160,9 @@ function connect(roomId) {
 
   state.ws.addEventListener("close", () => {
     state.joined = false;
+    state.userCount = 0;
     setStatus("Disconnected");
+    updateRoomMeta();
     beHostBtn.disabled = true;
     loadVideoBtn.disabled = true;
   });
@@ -147,9 +175,17 @@ function connect(roomId) {
     const msg = JSON.parse(event.data);
     if (msg.type === "room_state") {
       state.hostId = msg.hostId;
+      if (typeof msg.userCount === "number") state.userCount = msg.userCount;
       setStatus(`Connected. Host: ${state.hostId === state.clientId ? "You" : "Another user"}`);
+      updateRoomMeta();
       updateLoadButtonState();
       applyRemoteState(msg.state);
+      return;
+    }
+
+    if (msg.type === "user_count" && typeof msg.count === "number") {
+      state.userCount = msg.count;
+      updateRoomMeta();
       return;
     }
 
@@ -167,6 +203,11 @@ function connect(roomId) {
 
     if (msg.type === "pong" && typeof msg.ts === "number") {
       state.latencyMs = Date.now() - msg.ts;
+      return;
+    }
+
+    if (msg.type === "chat" && typeof msg.clientId === "string" && typeof msg.text === "string") {
+      appendChatMessage(msg);
     }
   });
 }
@@ -251,6 +292,18 @@ loadVideoBtn.addEventListener("click", () => {
   });
 });
 
+function sendChat() {
+  const text = chatInputEl.value.trim();
+  if (!text || !state.joined) return;
+  wsSend({ type: "chat", text });
+  chatInputEl.value = "";
+}
+
+sendChatBtn.addEventListener("click", sendChat);
+chatInputEl.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") sendChat();
+});
+
 document.addEventListener("keydown", (e) => {
   if (!isHost() || !state.player) return;
   if (e.key === "ArrowLeft") {
@@ -266,3 +319,4 @@ document.addEventListener("keydown", (e) => {
 
 startLatencyPings();
 startDriftCorrection();
+updateRoomMeta();

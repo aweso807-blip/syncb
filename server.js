@@ -45,6 +45,10 @@ function broadcast(room, payload, skip = null) {
   }
 }
 
+function sendUserCount(room) {
+  broadcast(room, { type: "user_count", count: room.clients.size });
+}
+
 function parseMessage(raw) {
   try {
     return JSON.parse(raw);
@@ -88,6 +92,7 @@ wss.on("connection", (socket) => {
         JSON.stringify({
           type: "room_state",
           hostId: room.state.hostId,
+          userCount: room.clients.size,
           state: {
             videoId: room.state.videoId,
             playing: room.state.playing,
@@ -97,6 +102,7 @@ wss.on("connection", (socket) => {
           }
         })
       );
+      sendUserCount(room);
       return;
     }
 
@@ -149,6 +155,18 @@ wss.on("connection", (socket) => {
       return;
     }
 
+    if (msg.type === "chat" && typeof msg.text === "string") {
+      const text = msg.text.trim();
+      if (!text) return;
+      broadcast(room, {
+        type: "chat",
+        clientId,
+        text: text.slice(0, 400),
+        ts: Date.now()
+      });
+      return;
+    }
+
     if (msg.type === "ping" && typeof msg.ts === "number") {
       socket.send(JSON.stringify({ type: "pong", ts: msg.ts }));
     }
@@ -165,6 +183,8 @@ wss.on("connection", (socket) => {
       room.state.hostId = nextClient ? nextClient.clientId : null;
       broadcast(room, { type: "host_changed", hostId: room.state.hostId });
     }
+
+    if (room.clients.size > 0) sendUserCount(room);
 
     if (room.clients.size === 0) {
       rooms.delete(roomId);

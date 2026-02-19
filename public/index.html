@@ -20,6 +20,7 @@
         <button id="joinBtn">Join</button>
         <button id="beHostBtn" disabled>Become Host</button>
       </section>
+      <p id="roomMeta">Users in room: 0</p>
 
       <section class="controls">
         <label>
@@ -30,7 +31,17 @@
       </section>
 
       <p id="status">Disconnected</p>
-      <div id="player"></div>
+      <section class="mainLayout">
+        <div id="player"></div>
+        <aside class="chatPanel">
+          <h2>Live Chat</h2>
+          <div id="chatMessages"></div>
+          <div class="chatInputRow">
+            <input id="chatInput" placeholder="Type a message..." maxlength="400" />
+            <button id="sendChatBtn">Send</button>
+          </div>
+        </aside>
+      </section>
     </main>
     <script src="./app.js"></script>
   </body>
