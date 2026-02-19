@@ -91,7 +91,8 @@ button:disabled {
   padding: 10px;
   display: flex;
   flex-direction: column;
-  min-height: 420px;
+  height: 520px;
+  max-height: calc(100vh - 180px);
 }
 
 .chatPanel h2 {
@@ -101,6 +102,7 @@ button:disabled {
 
 #chatMessages {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   background: #020617;
   border: 1px solid #1e293b;
@@ -130,6 +132,7 @@ button:disabled {
   }
 
   .chatPanel {
-    min-height: 260px;
+    height: 320px;
+    max-height: 55vh;
   }
 }

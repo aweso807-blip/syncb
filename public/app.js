@@ -2,6 +2,7 @@ const state = {
   ws: null,
   roomId: "",
   clientId: crypto.randomUUID(),
+  username: getOrCreateUsername(),
   hostId: null,
   player: null,
   joined: false,
@@ -12,20 +13,19 @@ const state = {
   userCount: 0
 };
 
-// function getBackendWsUrl() {
-//   const forced = window.localStorage.getItem("syncb.wsUrl");
-//   if (forced) return forced;
-//   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-//   return `${protocol}//${window.location.host}`;
-// }
+function getBackendWsUrl() {
+  const forced = window.localStorage.getItem("syncb.wsUrl");
+  if (forced) return forced;
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${protocol}//${window.location.host}`;
+}
 
-// const BACKEND_WS_URL = getBackendWsUrl();
-
-const BACKEND_WS_URL = "wss://syncb.onrender.com";
+const BACKEND_WS_URL = getBackendWsUrl();
 
 const statusEl = document.getElementById("status");
 const roomIdEl = document.getElementById("roomId");
 const joinBtn = document.getElementById("joinBtn");
+const inviteBtn = document.getElementById("inviteBtn");
 const beHostBtn = document.getElementById("beHostBtn");
 const videoInput = document.getElementById("videoInput");
 const loadVideoBtn = document.getElementById("loadVideoBtn");
@@ -38,13 +38,54 @@ function setStatus(text) {
   statusEl.textContent = text;
 }
 
+function getOrCreateUsername() {
+  const saved = window.localStorage.getItem("syncb.username");
+  if (saved) return saved;
+  const title = [
+    "Astral",
+    "Moonlit",
+    "Ember",
+    "Misty",
+    "Crystal",
+    "Arcane",
+    "Whispering",
+    "Starlit",
+    "Golden",
+    "Velvet"
+  ];
+  const kind = [
+    "Phoenix",
+    "Dragon",
+    "Warden",
+    "Bard",
+    "Sprite",
+    "Raven",
+    "Griffin",
+    "Sorcerer",
+    "Nomad",
+    "Seer"
+  ];
+  const num = String(Math.floor(Math.random() * 900) + 100);
+  const name = `${title[Math.floor(Math.random() * title.length)]}${kind[Math.floor(Math.random() * kind.length)]}${num}`;
+  window.localStorage.setItem("syncb.username", name);
+  return name;
+}
+
+function getRoomInviteUrl(roomId) {
+  const room = roomId.trim();
+  if (!room) return "";
+  const url = new URL(window.location.href);
+  url.searchParams.set("room", room);
+  return url.toString();
+}
+
 function updateRoomMeta() {
   roomMetaEl.textContent = `Users in room: ${state.userCount}`;
 }
 
-function appendChatMessage({ clientId, text }) {
+function appendChatMessage({ clientId, username, text }) {
   const messageEl = document.createElement("p");
-  const sender = clientId === state.clientId ? "You" : `User ${clientId.slice(0, 6)}`;
+  const sender = clientId === state.clientId ? `${state.username} (You)` : username || `Wanderer-${clientId.slice(0, 6)}`;
   messageEl.textContent = `${sender}: ${text}`;
   chatMessagesEl.appendChild(messageEl);
   chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
@@ -152,7 +193,8 @@ function connect(roomId) {
 
   state.ws.addEventListener("open", () => {
     state.joined = true;
-    wsSend({ type: "join", roomId, clientId: state.clientId });
+    wsSend({ type: "join", roomId, clientId: state.clientId, username: state.username });
+    window.history.replaceState(null, "", getRoomInviteUrl(roomId));
     setStatus(`Connected to room "${roomId}"`);
     beHostBtn.disabled = false;
     updateLoadButtonState();
@@ -304,6 +346,35 @@ chatInputEl.addEventListener("keydown", (e) => {
   if (e.key === "Enter") sendChat();
 });
 
+inviteBtn.addEventListener("click", async () => {
+  const room = state.roomId || roomIdEl.value.trim();
+  if (!room) {
+    setStatus("Enter or join a room first.");
+    return;
+  }
+  const inviteUrl = getRoomInviteUrl(room);
+  if (!inviteUrl) return;
+
+  try {
+    if (navigator.share) {
+      await navigator.share({
+        title: "Join my SyncTube room",
+        text: `Join room: ${room}`,
+        url: inviteUrl
+      });
+      setStatus("Invite shared.");
+      return;
+    }
+  } catch {}
+
+  try {
+    await navigator.clipboard.writeText(inviteUrl);
+    setStatus("Invite link copied.");
+  } catch {
+    setStatus(`Invite link: ${inviteUrl}`);
+  }
+});
+
 document.addEventListener("keydown", (e) => {
   if (!isHost() || !state.player) return;
   if (e.key === "ArrowLeft") {
@@ -320,3 +391,9 @@ document.addEventListener("keydown", (e) => {
 startLatencyPings();
 startDriftCorrection();
 updateRoomMeta();
+
+const initialRoom = new URLSearchParams(window.location.search).get("room");
+if (initialRoom) {
+  roomIdEl.value = initialRoom;
+  joinBtn.click();
+}

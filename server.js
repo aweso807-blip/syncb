@@ -57,6 +57,13 @@ function parseMessage(raw) {
   }
 }
 
+function sanitizeUsername(name, fallback = "Wanderer") {
+  if (typeof name !== "string") return fallback;
+  const trimmed = name.trim().replace(/\s+/g, " ");
+  if (!trimmed) return fallback;
+  return trimmed.slice(0, 40);
+}
+
 function applyStatePatch(state, patch) {
   if (typeof patch.videoId === "string") state.videoId = patch.videoId.trim();
   if (typeof patch.playing === "boolean") state.playing = patch.playing;
@@ -81,11 +88,13 @@ wss.on("connection", (socket) => {
       if (typeof msg.roomId !== "string" || typeof msg.clientId !== "string") return;
       roomId = msg.roomId.trim();
       clientId = msg.clientId.trim();
+      const username = sanitizeUsername(msg.username, `Wanderer-${clientId.slice(0, 4)}`);
       if (!roomId || !clientId) return;
 
       const room = getRoom(roomId);
       room.clients.add(socket);
       socket.clientId = clientId;
+      socket.username = username;
       if (!room.state.hostId) room.state.hostId = clientId;
 
       socket.send(
@@ -161,6 +170,7 @@ wss.on("connection", (socket) => {
       broadcast(room, {
         type: "chat",
         clientId,
+        username: socket.username || `Wanderer-${clientId.slice(0, 4)}`,
         text: text.slice(0, 400),
         ts: Date.now()
       });
