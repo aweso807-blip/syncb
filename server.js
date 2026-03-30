@@ -84,6 +84,11 @@ function sanitizeDate(value) {
   return date.toISOString();
 }
 
+function sanitizeGenres(value) {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.map((item) => sanitizeText(item, "", 24)).filter(Boolean))].slice(0, 6);
+}
+
 function applyStatePatch(state, patch) {
   if (typeof patch.videoId === "string") state.videoId = patch.videoId.trim();
   if (typeof patch.playing === "boolean") state.playing = patch.playing;
@@ -102,6 +107,7 @@ function ensureViewer(clientId, username = "") {
   const existing = viewerProfiles.get(safeClientId);
   if (existing) {
     if (username) existing.displayName = sanitizeUsername(username, existing.displayName);
+    if (!Array.isArray(existing.channelGenres)) existing.channelGenres = [];
     return existing;
   }
 
@@ -117,6 +123,7 @@ function ensureViewer(clientId, username = "") {
     },
     channelName: "",
     channelTagline: "",
+    channelGenres: [],
     createdAt: new Date().toISOString()
   };
   viewerProfiles.set(safeClientId, viewer);
@@ -126,6 +133,12 @@ function ensureViewer(clientId, username = "") {
 function getSubscribers(hostId) {
   if (!hostSubscribers.has(hostId)) hostSubscribers.set(hostId, new Set());
   return hostSubscribers.get(hostId);
+}
+
+function estimateAudience(show) {
+  const subscriberBase = getSubscribers(show.hostId).size;
+  const genreBoost = (show.genres || []).length * 4;
+  return Math.max(8, subscriberBase * 3 + genreBoost + 12);
 }
 
 function toShowResponse(show) {
@@ -139,6 +152,8 @@ function toShowResponse(show) {
     scheduledFor: show.scheduledFor,
     durationMinutes: show.durationMinutes,
     hostId: show.hostId,
+    genres: show.genres || [],
+    estimatedAudience: estimateAudience(show),
     channelName: host?.channelName || host?.displayName || "Host"
   };
 }
@@ -159,6 +174,7 @@ function buildAppState(viewer) {
       displayName: profile.displayName,
       channelName: profile.channelName,
       channelTagline: profile.channelTagline,
+      genres: profile.channelGenres || [],
       subscribers: getSubscribers(profile.clientId).size,
       upcomingCount: upcomingShows.filter((show) => show.hostId === profile.clientId).length
     }))
@@ -212,7 +228,7 @@ function buildDeliverySummary(subscribers) {
     if (viewer.notificationPrefs?.whatsapp && viewer.whatsapp) whatsappCount += 1;
   }
 
-  return `In-app ${inAppCount} • Email ${emailCount} • WhatsApp ${whatsappCount}`;
+  return `In-app ${inAppCount} | Email ${emailCount} | WhatsApp ${whatsappCount}`;
 }
 
 function seedData() {
@@ -221,13 +237,15 @@ function seedData() {
       clientId: "host-cinema",
       displayName: "Nina Vale",
       channelName: "Cinema Circle",
-      channelTagline: "Smart movie nights, scene breakdowns, and community replays."
+      channelTagline: "Smart movie nights, scene breakdowns, and community replays.",
+      channelGenres: ["Film", "Premiere", "Critique"]
     },
     {
       clientId: "host-kpop",
       displayName: "Arjun Flux",
       channelName: "Live Beat Lounge",
-      channelTagline: "Come for music drops, stay for the fan theories and rewind moments."
+      channelTagline: "Come for music drops, stay for the fan theories and rewind moments.",
+      channelGenres: ["Music", "Pop", "Community"]
     }
   ];
 
@@ -235,6 +253,7 @@ function seedData() {
     const viewer = ensureViewer(host.clientId, host.displayName);
     viewer.channelName = host.channelName;
     viewer.channelTagline = host.channelTagline;
+    viewer.channelGenres = host.channelGenres;
   }
 
   const seedShows = [
@@ -245,6 +264,7 @@ function seedData() {
       description: "A moody late-night watch party with live reactions and scene notes.",
       roomId: "neo-noir-friday",
       videoId: "dQw4w9WgXcQ",
+      genres: ["Film", "Noir", "Community"],
       scheduledFor: new Date(Date.now() + 6 * 3600 * 1000).toISOString(),
       durationMinutes: 110
     },
@@ -255,6 +275,7 @@ function seedData() {
       description: "Vote on the next music video while the room chat stays open all night.",
       roomId: "midnight-mv-marathon",
       videoId: "M7lc1UVf-VE",
+      genres: ["Music", "Pop", "Fan Event"],
       scheduledFor: new Date(Date.now() + 20 * 3600 * 1000).toISOString(),
       durationMinutes: 95
     }
@@ -298,6 +319,7 @@ app.post("/api/channel", (req, res) => {
 
   viewer.channelName = channelName;
   viewer.channelTagline = sanitizeText(req.body.channelTagline, "", 90);
+  viewer.channelGenres = sanitizeGenres(req.body.channelGenres);
   res.json(buildAppState(viewer));
 });
 
@@ -312,6 +334,7 @@ app.post("/api/shows", (req, res) => {
   const description = sanitizeText(req.body.description, "", 220);
   const videoId = sanitizeText(req.body.videoId, "", 20);
   const durationMinutes = Math.max(15, Math.min(480, Number(req.body.durationMinutes) || 90));
+  const genres = sanitizeGenres(req.body.genres?.length ? req.body.genres : viewer.channelGenres);
 
   if (!title) return res.status(400).json({ error: "Show title is required" });
   if (!scheduledFor) return res.status(400).json({ error: "Valid start time is required" });
@@ -324,6 +347,7 @@ app.post("/api/shows", (req, res) => {
     description,
     roomId,
     videoId,
+    genres,
     scheduledFor,
     durationMinutes,
     createdAt: new Date().toISOString()

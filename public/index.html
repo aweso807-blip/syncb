@@ -8,216 +8,304 @@
     <script src="https://www.youtube.com/iframe_api"></script>
   </head>
   <body>
+    <div class="pageGlow pageGlowOne"></div>
+    <div class="pageGlow pageGlowTwo"></div>
+
     <main class="appShell">
-      <section class="hero">
-        <div>
-          <p class="eyebrow">Shared watch parties for creators</p>
-          <h1>Build your own show host channel.</h1>
-          <p class="heroCopy">
-            Create scheduled shows, open pre-made watch rooms, grow subscribers, alert them before you go live, and let everyone watch together with chat.
-          </p>
-        </div>
-        <div class="heroCard" id="identityCard"></div>
-      </section>
-
-      <section class="dashboardGrid">
-        <article class="panel">
-          <div class="panelHeading">
-            <div>
-              <p class="panelKicker">Profile</p>
-              <h2>Your viewer profile</h2>
-            </div>
-          </div>
-          <form id="profileForm" class="stackForm">
-            <label>
-              Display name
-              <input id="displayNameInput" maxlength="40" placeholder="Your public name" />
-            </label>
-            <label>
-              Email for alerts
-              <input id="emailInput" type="email" placeholder="you@example.com" />
-            </label>
-            <label>
-              WhatsApp number
-              <input id="whatsappInput" placeholder="+91 98765 43210" />
-            </label>
-            <div class="toggleRow">
-              <label class="toggle">
-                <input id="prefAlertsInput" type="checkbox" checked />
-                <span>In-app alerts</span>
-              </label>
-              <label class="toggle">
-                <input id="prefEmailInput" type="checkbox" />
-                <span>Email</span>
-              </label>
-              <label class="toggle">
-                <input id="prefWhatsappInput" type="checkbox" />
-                <span>WhatsApp</span>
-              </label>
-            </div>
-            <button type="submit">Save profile</button>
-          </form>
-        </article>
-
-        <article class="panel">
-          <div class="panelHeading">
-            <div>
-              <p class="panelKicker">Host Studio</p>
-              <h2>Create your channel</h2>
-            </div>
-          </div>
-          <form id="channelForm" class="stackForm">
-            <label>
-              Channel title
-              <input id="channelNameInput" maxlength="48" placeholder="Movie Night Club" />
-            </label>
-            <label>
-              Channel tagline
-              <input id="channelTaglineInput" maxlength="90" placeholder="Weekly live watch-alongs, premieres and fan chat." />
-            </label>
-            <button type="submit">Save host channel</button>
-          </form>
-          <div id="myChannelCard" class="miniStack"></div>
-        </article>
-
-        <article class="panel">
-          <div class="panelHeading">
-            <div>
-              <p class="panelKicker">Schedule Builder</p>
-              <h2>Pre-create a show</h2>
-            </div>
-          </div>
-          <form id="showForm" class="stackForm">
-            <label>
-              Show title
-              <input id="showTitleInput" maxlength="70" placeholder="Friday Anime Marathon" />
-            </label>
-            <label>
-              Start time
-              <input id="showDateInput" type="datetime-local" />
-            </label>
-            <label>
-              Duration (minutes)
-              <input id="showDurationInput" type="number" min="15" max="480" value="90" />
-            </label>
-            <label>
-              Room slug
-              <input id="showRoomInput" maxlength="50" placeholder="friday-anime-marathon" />
-            </label>
-            <label>
-              YouTube URL or ID
-              <input id="showVideoInput" placeholder="https://www.youtube.com/watch?v=..." />
-            </label>
-            <label>
-              Notes
-              <textarea id="showDescriptionInput" rows="3" maxlength="220" placeholder="Tell subscribers what is special about this show."></textarea>
-            </label>
-            <button type="submit">Create scheduled show</button>
-          </form>
-        </article>
-      </section>
-
-      <section class="dashboardGrid secondary">
-        <article class="panel spanTwo">
-          <div class="panelHeading">
-            <div>
-              <p class="panelKicker">Channels</p>
-              <h2>Discover hosts</h2>
-            </div>
-          </div>
-          <div id="channelDirectory" class="cardGrid"></div>
-        </article>
-
-        <article class="panel">
-          <div class="panelHeading">
-            <div>
-              <p class="panelKicker">Alerts</p>
-              <h2>Subscriber notification center</h2>
-            </div>
-          </div>
-          <div id="alertsFeed" class="feedList"></div>
-        </article>
-      </section>
-
-      <section class="dashboardGrid secondary">
-        <article class="panel">
-          <div class="panelHeading">
-            <div>
-              <p class="panelKicker">Upcoming</p>
-              <h2>Shows from hosts you follow</h2>
-            </div>
-          </div>
-          <div id="subscriberUpcoming" class="feedList"></div>
-        </article>
-
-        <article class="panel">
-          <div class="panelHeading">
-            <div>
-              <p class="panelKicker">Host View</p>
-              <h2>Your scheduled shows</h2>
-            </div>
-          </div>
-          <div id="hostUpcoming" class="feedList"></div>
-        </article>
-
-        <article class="panel">
-          <div class="panelHeading">
-            <div>
-              <p class="panelKicker">Quick Actions</p>
-              <h2>Jump into a watch room</h2>
-            </div>
-          </div>
-          <div id="quickJoinList" class="feedList"></div>
-        </article>
-      </section>
-
-      <section class="watchSection">
-        <div class="watchHeader">
+      <header class="topbar glassPanel">
+        <div class="brandLockup">
+          <div class="brandMark">S</div>
           <div>
-            <p class="panelKicker">Watch Together</p>
-            <h2>Live room + chat</h2>
+            <p class="eyebrow">Watch, host, discover</p>
+            <h1>SyncTube Studio</h1>
           </div>
-          <p id="status">Disconnected</p>
         </div>
 
-        <div class="watchControls">
-          <label>
-            Room ID
-            <input id="roomId" placeholder="example-room" />
-          </label>
-          <button id="joinBtn">Join room</button>
-          <button id="inviteBtn">Share room</button>
-          <button id="beHostBtn" disabled>Become host</button>
-          <label class="videoControl">
-            Video URL / ID
-            <input id="videoInput" placeholder="https://www.youtube.com/watch?v=..." />
-          </label>
-          <button id="loadVideoBtn" disabled>Load video</button>
-        </div>
+        <nav class="tabNav" aria-label="Primary">
+          <button class="tabButton isActive" data-tab="home">Home</button>
+          <button class="tabButton" data-tab="feed">Feed</button>
+          <button class="tabButton" data-tab="create">Create</button>
+          <button class="tabButton" data-tab="watch">Watch</button>
+        </nav>
 
-        <div class="watchMetaBar">
-          <p id="roomMeta">Users in room: 0</p>
-          <p id="roomHint">Tip: scheduled shows already generate a room link, so subscribers can join in one tap.</p>
+        <div class="topbarActions">
+          <button id="themeToggleBtn" class="iconButton" type="button" aria-label="Toggle theme">Dark</button>
+          <div id="identityCard" class="identityChip"></div>
         </div>
+      </header>
 
-        <div class="mainLayout">
-          <div class="playerWrap">
-            <div id="player"></div>
+      <section class="hero heroSplit glassPanel" data-view="home">
+        <div class="heroCopyBlock">
+          <p class="eyebrow">Creator-first watch platform</p>
+          <h2>Discover shared event rooms.</h2>
+          <p class="heroCopy">
+            Build a channel, schedule genre-based events, keep a live feed of upcoming drops, and open synced watch rooms with chat when the audience arrives.
+          </p>
+
+          <div class="heroActions">
+            <button type="button" data-tab-target="create">Start creating</button>
+            <button type="button" class="ghostButton" data-tab-target="feed">Explore feed</button>
           </div>
-          <aside class="chatPanel">
-            <div class="chatHeading">
-              <h2>Room chat</h2>
-              <p>Talk while you watch.</p>
+
+          <div id="heroStats" class="heroStats"></div>
+        </div>
+
+        <div class="heroShowcase">
+          <div class="showcaseCard showcaseCardPrimary">
+            <p class="showcaseLabel">Next up</p>
+            <div id="heroFeaturedShow"></div>
+          </div>
+          <div class="showcaseStack">
+            <div class="showcaseCard">
+              <p class="showcaseLabel">Trending genres</p>
+              <div id="genreRail" class="genreRail"></div>
             </div>
-            <div id="chatMessages"></div>
-            <div class="chatInputRow">
-              <input id="chatInput" placeholder="Type a message..." maxlength="400" />
-              <button id="sendChatBtn">Send</button>
+            <div class="showcaseCard">
+              <p class="showcaseLabel">Live platform pulse</p>
+              <div id="spotlightRail" class="spotlightRail"></div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="contentView isVisible" data-view="home">
+        <div class="featureGrid">
+          <article class="glassPanel panel widePanel">
+            <div class="panelHeading">
+              <div>
+                <p class="panelKicker">Recommended</p>
+                <h3>Featured events for your audience</h3>
+              </div>
+              <button type="button" class="ghostButton" data-tab-target="feed">Open full feed</button>
+            </div>
+            <div id="featuredFeed" class="videoGrid"></div>
+          </article>
+
+          <article class="glassPanel panel">
+            <div class="panelHeading">
+              <div>
+                <p class="panelKicker">Channels</p>
+                <h3>Popular hosts</h3>
+              </div>
+            </div>
+            <div id="channelDirectory" class="cardStack"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="contentView" data-view="feed">
+        <div class="feedLayout">
+          <article class="glassPanel panel">
+            <div class="panelHeading">
+              <div>
+                <p class="panelKicker">For you</p>
+                <h3>Upcoming feed</h3>
+              </div>
+            </div>
+            <div class="feedToolbar">
+              <div id="feedGenreFilters" class="filterRail"></div>
+            </div>
+            <div id="subscriberUpcoming" class="videoGrid"></div>
+          </article>
+
+          <aside class="feedSidebar">
+            <article class="glassPanel panel">
+              <div class="panelHeading">
+                <div>
+                  <p class="panelKicker">Notifications</p>
+                  <h3>Creator alerts</h3>
+                </div>
+              </div>
+              <div id="alertsFeed" class="cardStack"></div>
+            </article>
+
+            <article class="glassPanel panel">
+              <div class="panelHeading">
+                <div>
+                  <p class="panelKicker">Quick join</p>
+                  <h3>Fast access rooms</h3>
+                </div>
+              </div>
+              <div id="quickJoinList" class="cardStack"></div>
+            </article>
           </aside>
         </div>
       </section>
+
+      <section class="contentView" data-view="create">
+        <div class="createLayout">
+          <article class="glassPanel panel">
+            <div class="panelHeading">
+              <div>
+                <p class="panelKicker">Profile</p>
+                <h3>Your viewer identity</h3>
+              </div>
+            </div>
+            <form id="profileForm" class="stackForm">
+              <label>
+                Display name
+                <input id="displayNameInput" maxlength="40" placeholder="Your public name" />
+              </label>
+              <label>
+                Email for alerts
+                <input id="emailInput" type="email" placeholder="you@example.com" />
+              </label>
+              <label>
+                WhatsApp number
+                <input id="whatsappInput" placeholder="+91 98765 43210" />
+              </label>
+              <div class="toggleRow">
+                <label class="toggle">
+                  <input id="prefAlertsInput" type="checkbox" checked />
+                  <span>In-app alerts</span>
+                </label>
+                <label class="toggle">
+                  <input id="prefEmailInput" type="checkbox" />
+                  <span>Email</span>
+                </label>
+                <label class="toggle">
+                  <input id="prefWhatsappInput" type="checkbox" />
+                  <span>WhatsApp</span>
+                </label>
+              </div>
+              <button type="submit">Save profile</button>
+            </form>
+          </article>
+
+          <article class="glassPanel panel">
+            <div class="panelHeading">
+              <div>
+                <p class="panelKicker">Channel studio</p>
+                <h3>Build your host page</h3>
+              </div>
+            </div>
+            <form id="channelForm" class="stackForm">
+              <label>
+                Channel title
+                <input id="channelNameInput" maxlength="48" placeholder="Movie Night Club" />
+              </label>
+              <label>
+                Channel tagline
+                <input id="channelTaglineInput" maxlength="90" placeholder="Weekly live watch-alongs, premieres and fan chat." />
+              </label>
+              <label>
+                Signature genres
+                <input id="channelGenresInput" maxlength="120" placeholder="Anime, Film, Pop, Gaming" />
+              </label>
+              <button type="submit">Save host channel</button>
+            </form>
+            <div id="myChannelCard" class="previewBlock"></div>
+          </article>
+
+          <article class="glassPanel panel">
+            <div class="panelHeading">
+              <div>
+                <p class="panelKicker">Event composer</p>
+                <h3>Create a new event</h3>
+              </div>
+            </div>
+            <form id="showForm" class="stackForm">
+              <label>
+                Event title
+                <input id="showTitleInput" maxlength="70" placeholder="Friday Anime Marathon" />
+              </label>
+              <label>
+                Start time
+                <input id="showDateInput" type="datetime-local" />
+              </label>
+              <label>
+                Duration (minutes)
+                <input id="showDurationInput" type="number" min="15" max="480" value="90" />
+              </label>
+              <label>
+                Room slug
+                <input id="showRoomInput" maxlength="50" placeholder="friday-anime-marathon" />
+              </label>
+              <label>
+                YouTube URL or ID
+                <input id="showVideoInput" placeholder="https://www.youtube.com/watch?v=..." />
+              </label>
+              <label>
+                Genres
+                <input id="showGenresInput" maxlength="120" placeholder="Anime, Community, Premiere" />
+              </label>
+              <label>
+                Notes
+                <textarea id="showDescriptionInput" rows="3" maxlength="220" placeholder="Tell subscribers what is special about this show."></textarea>
+              </label>
+              <button type="submit">Create scheduled show</button>
+            </form>
+          </article>
+        </div>
+
+        <div class="featureGrid createSecondary">
+          <article class="glassPanel panel widePanel">
+            <div class="panelHeading">
+              <div>
+                <p class="panelKicker">Your calendar</p>
+                <h3>Upcoming hosted events</h3>
+              </div>
+            </div>
+            <div id="hostUpcoming" class="videoGrid"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="contentView" data-view="watch">
+        <article class="glassPanel panel watchSection">
+          <div class="watchHeader">
+            <div>
+              <p class="panelKicker">Watch together</p>
+              <h3>Live room + synced player</h3>
+            </div>
+            <div class="watchStatusGroup">
+              <p id="status">Disconnected</p>
+              <p id="roomMeta">Users in room: 0</p>
+            </div>
+          </div>
+
+          <div class="watchControls">
+            <label>
+              Room ID
+              <input id="roomId" placeholder="example-room" />
+            </label>
+            <button id="joinBtn" type="button">Join room</button>
+            <button id="inviteBtn" type="button">Share room</button>
+            <button id="beHostBtn" type="button" disabled>Become host</button>
+            <label class="videoControl">
+              Video URL / ID
+              <input id="videoInput" placeholder="https://www.youtube.com/watch?v=..." />
+            </label>
+            <button id="loadVideoBtn" type="button" disabled>Load video</button>
+          </div>
+
+          <div class="watchMetaBar">
+            <p id="roomHint">Tip: scheduled shows already generate a room link, so subscribers can join in one tap.</p>
+          </div>
+
+          <div class="mainLayout">
+            <div class="playerWrap">
+              <div id="player"></div>
+            </div>
+
+            <aside class="chatPanel">
+              <div class="chatHeading">
+                <div>
+                  <h3>Live chat</h3>
+                  <p>Talk while you watch in sync.</p>
+                </div>
+              </div>
+              <div id="chatMessages"></div>
+              <div class="chatInputRow">
+                <input id="chatInput" placeholder="Type a message..." maxlength="400" />
+                <button id="sendChatBtn" type="button">Send</button>
+              </div>
+            </aside>
+          </div>
+        </article>
+      </section>
     </main>
+
     <script src="./app.js"></script>
   </body>
 </html>

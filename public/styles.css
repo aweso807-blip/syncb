@@ -1,20 +1,48 @@
 :root {
-  --bg: #f4efe6;
-  --bg-strong: #efe5d6;
-  --surface: rgba(255, 250, 242, 0.82);
-  --surface-strong: #fffaf2;
-  --ink: #21160d;
-  --muted: #6c5746;
-  --line: rgba(82, 58, 36, 0.15);
-  --brand: #c65d2e;
-  --brand-deep: #8f3f1b;
-  --accent: #1a6b73;
-  --accent-soft: #d8eff1;
-  --good: #2f7d4b;
-  --shadow: 0 18px 48px rgba(56, 30, 9, 0.12);
-  --radius-lg: 26px;
+  color-scheme: light;
+  --font-sans: "SF Pro Display", "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  --bg: #f5f5f7;
+  --bg-elevated: rgba(255, 255, 255, 0.72);
+  --bg-strong: rgba(255, 255, 255, 0.9);
+  --bg-soft: rgba(255, 255, 255, 0.54);
+  --ink: #101114;
+  --muted: #69707d;
+  --line: rgba(15, 23, 42, 0.08);
+  --line-strong: rgba(15, 23, 42, 0.12);
+  --accent: #0071e3;
+  --accent-strong: #0059b8;
+  --accent-soft: rgba(0, 113, 227, 0.12);
+  --good: #22a06b;
+  --hero-a: rgba(85, 175, 255, 0.16);
+  --hero-b: rgba(255, 167, 112, 0.16);
+  --hero-c: rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 24px 80px rgba(15, 23, 42, 0.12);
+  --shadow-md: 0 14px 42px rgba(15, 23, 42, 0.08);
+  --radius-xl: 32px;
+  --radius-lg: 24px;
   --radius-md: 18px;
-  --radius-sm: 12px;
+  --radius-sm: 14px;
+}
+
+body[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b0d12;
+  --bg-elevated: rgba(18, 20, 28, 0.76);
+  --bg-strong: rgba(18, 20, 28, 0.9);
+  --bg-soft: rgba(255, 255, 255, 0.05);
+  --ink: #f5f7fb;
+  --muted: #9da6b7;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.12);
+  --accent: #58a6ff;
+  --accent-strong: #80bcff;
+  --accent-soft: rgba(88, 166, 255, 0.14);
+  --good: #3ccf91;
+  --hero-a: rgba(0, 113, 227, 0.22);
+  --hero-b: rgba(142, 103, 255, 0.18);
+  --hero-c: rgba(255, 255, 255, 0.04);
+  --shadow-lg: 0 24px 80px rgba(0, 0, 0, 0.42);
+  --shadow-md: 0 14px 42px rgba(0, 0, 0, 0.3);
 }
 
 * {
@@ -27,13 +55,15 @@ html {
 
 body {
   margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
+  min-height: 100vh;
+  font-family: var(--font-sans);
   color: var(--ink);
   background:
-    radial-gradient(circle at top left, rgba(198, 93, 46, 0.14), transparent 30%),
-    radial-gradient(circle at top right, rgba(26, 107, 115, 0.16), transparent 28%),
-    linear-gradient(180deg, #fbf6ef 0%, var(--bg) 48%, #efe3d0 100%);
-  min-height: 100vh;
+    radial-gradient(circle at top left, var(--hero-a), transparent 28%),
+    radial-gradient(circle at top right, var(--hero-b), transparent 22%),
+    linear-gradient(180deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 90%, #dfe8f8 10%) 100%);
+  transition: background 240ms ease, color 240ms ease;
+  overflow-x: hidden;
 }
 
 button,
@@ -50,32 +80,34 @@ textarea {
 
 button {
   border: 0;
-  padding: 0.85rem 1.15rem;
-  background: linear-gradient(135deg, var(--brand), #db7b45);
-  color: #fff8f2;
   cursor: pointer;
-  box-shadow: 0 12px 24px rgba(198, 93, 46, 0.22);
-  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, opacity 160ms ease;
 }
 
 button:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 16px 28px rgba(198, 93, 46, 0.26);
 }
 
 button:disabled {
-  opacity: 0.55;
+  opacity: 0.56;
   cursor: not-allowed;
-  box-shadow: none;
 }
 
 input,
 textarea {
   width: 100%;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--bg-soft);
   color: var(--ink);
-  padding: 0.85rem 0.95rem;
+  padding: 0.95rem 1rem;
+  outline: none;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+input:focus,
+textarea:focus {
+  border-color: color-mix(in srgb, var(--accent) 56%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 textarea {
@@ -84,153 +116,352 @@ textarea {
 
 label {
   display: grid;
-  gap: 0.45rem;
+  gap: 0.5rem;
   color: var(--muted);
   font-size: 0.96rem;
 }
 
+.pageGlow {
+  position: fixed;
+  inset: auto;
+  width: 40vw;
+  height: 40vw;
+  border-radius: 999px;
+  filter: blur(60px);
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+.pageGlowOne {
+  top: -10vw;
+  left: -6vw;
+  background: var(--hero-a);
+}
+
+.pageGlowTwo {
+  top: 24vh;
+  right: -12vw;
+  background: var(--hero-b);
+}
+
 .appShell {
-  width: min(1380px, calc(100vw - 32px));
+  position: relative;
+  z-index: 1;
+  width: min(1440px, calc(100vw - 32px));
   margin: 0 auto;
-  padding: 32px 0 56px;
+  padding: 24px 0 56px;
 }
 
-.hero,
+.glassPanel {
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(24px) saturate(150%);
+}
+
+.topbar,
 .panel,
-.watchSection {
-  backdrop-filter: blur(12px);
+.hero {
+  border-radius: var(--radius-xl);
 }
 
-.hero {
+.topbar {
+  position: sticky;
+  top: 16px;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 22px;
+  margin-bottom: 20px;
+}
+
+.brandLockup,
+.topbarActions,
+.watchStatusGroup {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brandMark {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
-  gap: 24px;
-  padding: 28px;
-  border: 1px solid rgba(120, 86, 55, 0.14);
-  border-radius: 34px;
-  background: linear-gradient(135deg, rgba(255, 250, 242, 0.9), rgba(248, 239, 224, 0.78));
-  box-shadow: var(--shadow);
+  place-items: center;
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 55%, white));
+  color: white;
+  font-weight: 700;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.brandLockup h1,
+.hero h2,
+.panel h3,
+.chatHeading h3 {
+  margin: 0;
+  letter-spacing: -0.04em;
+}
+
+.brandLockup h1 {
+  font-size: 1.15rem;
+}
+
+.tabNav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-strong) 68%, transparent);
+  border: 1px solid var(--line);
+}
+
+.tabButton,
+.filterChip,
+.iconButton {
+  padding: 0.72rem 1rem;
+  background: transparent;
+  color: var(--muted);
+  box-shadow: none;
+}
+
+.tabButton.isActive,
+.filterChip.isActive,
+.iconButton {
+  background: var(--bg-strong);
+  color: var(--ink);
+  box-shadow: var(--shadow-md);
+}
+
+.iconButton {
+  min-width: 88px;
+}
+
+.identityChip {
+  min-width: 220px;
+}
+
+.identityChip,
+.showcaseCard,
+.videoCard,
+.listCard,
+.channelCard,
+.miniMetric {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--bg-strong);
+}
+
+.identityChip {
+  padding: 12px 16px;
 }
 
 .eyebrow,
-.panelKicker {
+.panelKicker,
+.showcaseLabel {
   margin: 0 0 0.35rem;
-  color: var(--brand-deep);
+  color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0.16em;
-  font-size: 0.73rem;
+  letter-spacing: 0.14em;
+  font-size: 0.7rem;
+  font-weight: 600;
 }
 
-.hero h1,
-.panel h2,
-.watchHeader h2,
-.chatHeading h2 {
-  margin: 0;
-  font-weight: 700;
-  line-height: 1.05;
+.hero {
+  padding: 28px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
 }
 
-.hero h1 {
-  font-size: clamp(2.6rem, 5vw, 4.6rem);
-  max-width: 10ch;
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: auto -12% -40% auto;
+  width: 420px;
+  height: 420px;
+  border-radius: 999px;
+  background: radial-gradient(circle, var(--hero-c), transparent 68%);
+  pointer-events: none;
+}
+
+.heroSplit,
+.featureGrid,
+.createLayout,
+.mainLayout,
+.feedLayout {
+  display: grid;
+  gap: 18px;
+}
+
+.heroSplit {
+  grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
+}
+
+.heroCopyBlock {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+}
+
+.hero h2 {
+  font-size: clamp(2.4rem, 5vw, 4.8rem);
+  line-height: 0.95;
+  max-width: 11ch;
 }
 
 .heroCopy {
-  max-width: 62ch;
+  max-width: 58ch;
+  margin: 0;
   font-size: 1.08rem;
-  line-height: 1.7;
+  line-height: 1.75;
   color: var(--muted);
 }
 
-.heroCard,
-.panel,
-.watchSection,
-.listCard,
-.channelCard,
-.identityCard {
-  border: 1px solid var(--line);
-  background: var(--surface);
-  box-shadow: var(--shadow);
+.heroActions,
+.heroStats,
+.genreRail,
+.spotlightRail,
+.filterRail,
+.watchControls,
+.chatInputRow,
+.listActions,
+.cardActions,
+.toggleRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.heroCard,
-.identityCard {
-  border-radius: 24px;
-  padding: 22px;
+.heroActions button,
+.watchControls > button,
+.chatInputRow button,
+.listActions button,
+.cardActions button,
+.stackForm button {
+  padding: 0.9rem 1.2rem;
+  background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+  color: white;
+  box-shadow: 0 14px 30px color-mix(in srgb, var(--accent) 24%, transparent);
 }
 
-.identityTitle {
-  font-size: 1.2rem;
-  margin: 0 0 0.3rem;
+.ghostButton {
+  background: color-mix(in srgb, var(--accent) 10%, transparent) !important;
+  color: var(--accent) !important;
+  box-shadow: none !important;
 }
 
+.heroStats {
+  margin-top: 8px;
+}
+
+.miniMetric {
+  min-width: 140px;
+  padding: 14px 16px;
+}
+
+.metricValue,
 .identityName {
-  font-size: 1.95rem;
-  margin: 0 0 0.8rem;
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
 
+.metricLabel,
 .identityMeta,
 .subtleText,
 #status,
 #roomMeta,
 #roomHint,
+.cardMeta,
+.listMeta,
+.cardCopy,
 .chatHeading p {
   margin: 0;
   color: var(--muted);
 }
 
-.dashboardGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-  margin-top: 20px;
-}
-
-.dashboardGrid.secondary {
-  align-items: start;
-}
-
-.spanTwo {
-  grid-column: span 2;
-}
-
+.heroShowcase,
+.showcaseStack,
 .panel,
-.watchSection {
-  border-radius: var(--radius-lg);
+.chatPanel,
+.cardStack,
+.videoGrid {
+  display: grid;
+  gap: 14px;
+}
+
+.showcaseCard {
+  padding: 18px;
+  min-height: 146px;
+  box-shadow: var(--shadow-md);
+}
+
+.showcaseCardPrimary {
+  min-height: 212px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-strong) 78%, transparent), var(--bg-strong)),
+    radial-gradient(circle at top right, var(--hero-a), transparent 40%);
+}
+
+.panel {
   padding: 22px;
+}
+
+.contentView {
+  display: none;
+  animation: fadeUp 280ms ease;
+}
+
+.contentView.isVisible {
+  display: block;
+}
+
+.featureGrid {
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.85fr);
+}
+
+.createLayout {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.createSecondary {
+  margin-top: 18px;
+}
+
+.widePanel {
+  min-width: 0;
 }
 
 .panelHeading,
 .watchHeader,
-.chatHeading,
-.watchMetaBar {
+.chatHeading {
   display: flex;
   justify-content: space-between;
-  gap: 14px;
   align-items: start;
+  gap: 14px;
+  margin-bottom: 16px;
 }
 
 .stackForm,
-.miniStack {
+.previewBlock {
   display: grid;
   gap: 12px;
-}
-
-.toggleRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
 }
 
 .toggle {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.92rem;
-  color: var(--ink);
-  background: rgba(255, 255, 255, 0.58);
-  padding: 0.65rem 0.8rem;
+  padding: 0.72rem 0.9rem;
   border-radius: 999px;
+  color: var(--ink);
+  background: var(--bg-soft);
   border: 1px solid var(--line);
 }
 
@@ -239,101 +470,155 @@ label {
   margin: 0;
 }
 
-.cardGrid,
-.feedList {
-  display: grid;
-  gap: 12px;
-}
-
-.channelCard,
-.listCard {
-  border-radius: 18px;
-  padding: 16px;
-  background: var(--surface-strong);
-}
-
-.channelCard {
-  display: grid;
-  gap: 12px;
-}
-
-.cardTop {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
+.feedLayout {
+  grid-template-columns: minmax(0, 1.5fr) 360px;
   align-items: start;
 }
 
-.avatarBadge,
+.feedSidebar {
+  display: grid;
+  gap: 18px;
+}
+
+.videoGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.videoCard,
+.channelCard,
+.listCard {
+  padding: 16px;
+  box-shadow: var(--shadow-md);
+}
+
+.videoCard {
+  display: grid;
+  gap: 14px;
+}
+
+.videoThumb {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 18px;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 36%, transparent), transparent),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.26)),
+    #161a22;
+}
+
+.videoThumb::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, transparent 35%, rgba(0, 0, 0, 0.5) 100%);
+}
+
+.thumbPlay {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+  backdrop-filter: blur(12px);
+}
+
+.thumbDuration,
+.thumbAudience {
+  position: absolute;
+  bottom: 14px;
+  padding: 0.36rem 0.62rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.58);
+  color: white;
+  font-size: 0.8rem;
+}
+
+.thumbDuration {
+  right: 14px;
+}
+
+.thumbAudience {
+  left: 14px;
+}
+
+.cardTop,
+.videoMetaRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 12px;
+}
+
 .pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  padding: 0.34rem 0.72rem;
   border-radius: 999px;
-}
-
-.avatarBadge {
-  width: 44px;
-  height: 44px;
-  background: linear-gradient(135deg, #f4c46b, #c65d2e);
-  color: #fff9f2;
-  font-size: 1.05rem;
-  font-weight: 700;
-}
-
-.pill {
-  padding: 0.35rem 0.7rem;
-  font-size: 0.8rem;
   background: var(--accent-soft);
   color: var(--accent);
+  font-size: 0.8rem;
 }
 
 .pill.live {
-  background: rgba(198, 93, 46, 0.13);
-  color: var(--brand-deep);
+  background: color-mix(in srgb, var(--good) 14%, transparent);
+  color: var(--good);
+}
+
+.genrePills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.genreTag {
+  padding: 0.32rem 0.62rem;
+  border-radius: 999px;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.filterChip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
 }
 
 .cardTitle,
 .listTitle {
   margin: 0;
-  font-size: 1.18rem;
+  font-size: 1.08rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
 
-.cardCopy,
-.listMeta {
-  margin: 0;
+.emptyState {
+  padding: 18px;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--line-strong);
   color: var(--muted);
-  line-height: 1.55;
-}
-
-.cardActions,
-.listActions,
-.watchControls,
-.chatInputRow {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.ghostButton {
-  background: rgba(26, 107, 115, 0.09);
-  color: var(--accent);
-  box-shadow: none;
+  background: color-mix(in srgb, var(--bg-soft) 85%, transparent);
 }
 
 .watchSection {
-  margin-top: 20px;
-  background: linear-gradient(145deg, rgba(255, 249, 240, 0.88), rgba(241, 231, 218, 0.76));
+  padding: 24px;
 }
 
 .watchControls {
   align-items: end;
-  margin-top: 18px;
 }
 
 .watchControls label {
   min-width: 180px;
-  flex: 1 1 210px;
+  flex: 1 1 200px;
 }
 
 .watchControls .videoControl {
@@ -341,26 +626,24 @@ label {
 }
 
 .watchMetaBar {
-  margin: 14px 0 16px;
-  padding: 12px 14px;
-  border-radius: 16px;
-  border: 1px dashed rgba(82, 58, 36, 0.16);
-  background: rgba(255, 255, 255, 0.42);
+  margin: 16px 0;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--bg-soft);
 }
 
 .mainLayout {
-  display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 16px;
   align-items: start;
 }
 
 .playerWrap {
-  background: #140e09;
-  border-radius: 24px;
   overflow: hidden;
-  min-height: 320px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  background: #090b10;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 #player {
@@ -371,79 +654,111 @@ label {
 .chatPanel {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  min-height: 540px;
-  padding: 18px;
-  border-radius: 24px;
-  background: rgba(255, 251, 246, 0.88);
-  border: 1px solid var(--line);
+  min-height: 560px;
 }
 
 #chatMessages {
+  min-height: 0;
   flex: 1;
   overflow-y: auto;
-  min-height: 0;
   padding: 14px;
-  border-radius: 18px;
-  border: 1px solid rgba(82, 58, 36, 0.12);
-  background: #fffdf9;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg-strong) 85%, transparent);
 }
 
 #chatMessages p {
   margin: 0 0 10px;
-  line-height: 1.45;
+  line-height: 1.5;
   word-break: break-word;
 }
 
-.emptyState {
-  padding: 18px;
-  border-radius: 18px;
-  border: 1px dashed rgba(82, 58, 36, 0.18);
-  color: var(--muted);
-  background: rgba(255, 255, 255, 0.34);
+.feedToolbar {
+  margin-bottom: 14px;
 }
 
 .noticeText {
   margin: 0;
-  font-size: 0.92rem;
   color: var(--muted);
+  font-size: 0.92rem;
 }
 
-.successText {
-  color: var(--good);
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-@media (max-width: 1120px) {
-  .dashboardGrid,
-  .hero,
+@media (max-width: 1200px) {
+  .heroSplit,
+  .featureGrid,
+  .feedLayout,
+  .createLayout,
   .mainLayout {
     grid-template-columns: 1fr;
   }
 
-  .spanTwo {
-    grid-column: auto;
+  .videoGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 860px) {
+  .topbar {
+    position: static;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .topbarActions,
+  .brandLockup {
+    justify-content: space-between;
+  }
+
+  .tabNav {
+    width: 100%;
+    justify-content: space-between;
+    overflow-x: auto;
+  }
+
+  .identityChip {
+    min-width: 0;
+    flex: 1;
   }
 }
 
 @media (max-width: 720px) {
   .appShell {
-    width: min(100vw - 18px, 1380px);
+    width: min(100vw - 18px, 1440px);
     padding-top: 18px;
     padding-bottom: 28px;
   }
 
   .hero,
   .panel,
-  .watchSection {
+  .topbar {
+    border-radius: 24px;
     padding: 18px;
-    border-radius: 22px;
   }
 
-  .hero h1 {
-    font-size: 2.4rem;
+  .hero h2 {
+    font-size: 2.5rem;
   }
 
-  .chatPanel {
-    min-height: 360px;
+  .watchControls > button,
+  .chatInputRow button,
+  .stackForm button {
+    width: 100%;
+  }
+
+  .tabButton,
+  .filterChip,
+  .iconButton {
+    padding: 0.68rem 0.85rem;
   }
 }
