@@ -1,6 +1,7 @@
 const express = require("express");
 const http = require("http");
 const path = require("path");
+const crypto = require("crypto");
 const { WebSocketServer } = require("ws");
 
 const app = express();
@@ -9,9 +10,14 @@ const wss = new WebSocketServer({ server });
 
 const DEFAULT_PORT = Number(process.env.PORT) || 3001;
 
+app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 const rooms = new Map();
+const viewerProfiles = new Map();
+const shows = new Map();
+const hostSubscribers = new Map();
+const alerts = [];
 
 function makeState() {
   return {
@@ -57,11 +63,25 @@ function parseMessage(raw) {
   }
 }
 
+function sanitizeText(value, fallback = "", max = 120) {
+  if (typeof value !== "string") return fallback;
+  const trimmed = value.trim().replace(/\s+/g, " ");
+  return trimmed ? trimmed.slice(0, max) : fallback;
+}
+
 function sanitizeUsername(name, fallback = "Wanderer") {
-  if (typeof name !== "string") return fallback;
-  const trimmed = name.trim().replace(/\s+/g, " ");
-  if (!trimmed) return fallback;
-  return trimmed.slice(0, 40);
+  return sanitizeText(name, fallback, 40);
+}
+
+function sanitizeRoomId(value) {
+  const roomId = sanitizeText(value, "", 50).toLowerCase();
+  return roomId.replace(/[^a-z0-9-_]/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+function sanitizeDate(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString();
 }
 
 function applyStatePatch(state, patch) {
@@ -76,6 +96,285 @@ function applyStatePatch(state, patch) {
   state.updatedAt = Date.now();
 }
 
+function ensureViewer(clientId, username = "") {
+  const safeClientId = sanitizeText(clientId, "", 80);
+  if (!safeClientId) return null;
+  const existing = viewerProfiles.get(safeClientId);
+  if (existing) {
+    if (username) existing.displayName = sanitizeUsername(username, existing.displayName);
+    return existing;
+  }
+
+  const viewer = {
+    clientId: safeClientId,
+    displayName: sanitizeUsername(username, `Viewer-${safeClientId.slice(0, 4)}`),
+    email: "",
+    whatsapp: "",
+    notificationPrefs: {
+      alerts: true,
+      email: false,
+      whatsapp: false
+    },
+    channelName: "",
+    channelTagline: "",
+    createdAt: new Date().toISOString()
+  };
+  viewerProfiles.set(safeClientId, viewer);
+  return viewer;
+}
+
+function getSubscribers(hostId) {
+  if (!hostSubscribers.has(hostId)) hostSubscribers.set(hostId, new Set());
+  return hostSubscribers.get(hostId);
+}
+
+function toShowResponse(show) {
+  const host = viewerProfiles.get(show.hostId);
+  return {
+    id: show.id,
+    title: show.title,
+    description: show.description,
+    roomId: show.roomId,
+    videoId: show.videoId,
+    scheduledFor: show.scheduledFor,
+    durationMinutes: show.durationMinutes,
+    hostId: show.hostId,
+    channelName: host?.channelName || host?.displayName || "Host"
+  };
+}
+
+function buildAppState(viewer) {
+  const subscriptions = [...hostSubscribers.entries()]
+    .filter(([, subscribers]) => subscribers.has(viewer.clientId))
+    .map(([hostId]) => hostId);
+
+  const upcomingShows = [...shows.values()]
+    .filter((show) => new Date(show.scheduledFor).getTime() >= Date.now() - 15 * 60000)
+    .sort((a, b) => new Date(a.scheduledFor) - new Date(b.scheduledFor));
+
+  const channels = [...viewerProfiles.values()]
+    .filter((profile) => profile.channelName)
+    .map((profile) => ({
+      id: profile.clientId,
+      displayName: profile.displayName,
+      channelName: profile.channelName,
+      channelTagline: profile.channelTagline,
+      subscribers: getSubscribers(profile.clientId).size,
+      upcomingCount: upcomingShows.filter((show) => show.hostId === profile.clientId).length
+    }))
+    .sort((a, b) => b.subscribers - a.subscribers || a.channelName.localeCompare(b.channelName));
+
+  const hostUpcoming = upcomingShows.filter((show) => show.hostId === viewer.clientId).map(toShowResponse);
+  const subscriberUpcoming = upcomingShows
+    .filter((show) => subscriptions.includes(show.hostId))
+    .map(toShowResponse);
+
+  const relevantAlerts = alerts
+    .filter((alert) => alert.hostId === viewer.clientId || subscriptions.includes(alert.hostId))
+    .slice(-12)
+    .reverse()
+    .map((alert) => {
+      const host = viewerProfiles.get(alert.hostId);
+      const show = alert.showId ? shows.get(alert.showId) : null;
+      return {
+        id: alert.id,
+        channelName: host?.channelName || host?.displayName || "Host",
+        message: alert.message,
+        createdAt: alert.createdAt,
+        showTitle: show?.title || "",
+        deliverySummary: alert.deliverySummary
+      };
+    });
+
+  return {
+    viewer: {
+      ...viewer,
+      subscriberCount: getSubscribers(viewer.clientId).size
+    },
+    channels,
+    subscriptions,
+    alerts: relevantAlerts,
+    hostUpcoming,
+    subscriberUpcoming
+  };
+}
+
+function buildDeliverySummary(subscribers) {
+  let inAppCount = 0;
+  let emailCount = 0;
+  let whatsappCount = 0;
+
+  for (const subscriberId of subscribers) {
+    const viewer = viewerProfiles.get(subscriberId);
+    if (!viewer) continue;
+    if (viewer.notificationPrefs?.alerts) inAppCount += 1;
+    if (viewer.notificationPrefs?.email && viewer.email) emailCount += 1;
+    if (viewer.notificationPrefs?.whatsapp && viewer.whatsapp) whatsappCount += 1;
+  }
+
+  return `In-app ${inAppCount} • Email ${emailCount} • WhatsApp ${whatsappCount}`;
+}
+
+function seedData() {
+  const seedHosts = [
+    {
+      clientId: "host-cinema",
+      displayName: "Nina Vale",
+      channelName: "Cinema Circle",
+      channelTagline: "Smart movie nights, scene breakdowns, and community replays."
+    },
+    {
+      clientId: "host-kpop",
+      displayName: "Arjun Flux",
+      channelName: "Live Beat Lounge",
+      channelTagline: "Come for music drops, stay for the fan theories and rewind moments."
+    }
+  ];
+
+  for (const host of seedHosts) {
+    const viewer = ensureViewer(host.clientId, host.displayName);
+    viewer.channelName = host.channelName;
+    viewer.channelTagline = host.channelTagline;
+  }
+
+  const seedShows = [
+    {
+      id: "show-cinema-premiere",
+      hostId: "host-cinema",
+      title: "Neo Noir Friday",
+      description: "A moody late-night watch party with live reactions and scene notes.",
+      roomId: "neo-noir-friday",
+      videoId: "dQw4w9WgXcQ",
+      scheduledFor: new Date(Date.now() + 6 * 3600 * 1000).toISOString(),
+      durationMinutes: 110
+    },
+    {
+      id: "show-livebeat-premiere",
+      hostId: "host-kpop",
+      title: "Midnight MV Marathon",
+      description: "Vote on the next music video while the room chat stays open all night.",
+      roomId: "midnight-mv-marathon",
+      videoId: "M7lc1UVf-VE",
+      scheduledFor: new Date(Date.now() + 20 * 3600 * 1000).toISOString(),
+      durationMinutes: 95
+    }
+  ];
+
+  for (const show of seedShows) {
+    if (!shows.has(show.id)) shows.set(show.id, show);
+  }
+}
+
+seedData();
+
+app.get("/api/app-state", (req, res) => {
+  const viewer = ensureViewer(req.query.clientId, req.query.username);
+  if (!viewer) return res.status(400).json({ error: "clientId is required" });
+  res.json(buildAppState(viewer));
+});
+
+app.post("/api/profile", (req, res) => {
+  const viewer = ensureViewer(req.body.clientId, req.body.username);
+  if (!viewer) return res.status(400).json({ error: "clientId is required" });
+
+  viewer.displayName = sanitizeUsername(req.body.displayName, viewer.displayName);
+  viewer.email = sanitizeText(req.body.email, "", 80);
+  viewer.whatsapp = sanitizeText(req.body.whatsapp, "", 40);
+  viewer.notificationPrefs = {
+    alerts: Boolean(req.body.notificationPrefs?.alerts),
+    email: Boolean(req.body.notificationPrefs?.email),
+    whatsapp: Boolean(req.body.notificationPrefs?.whatsapp)
+  };
+
+  res.json(buildAppState(viewer));
+});
+
+app.post("/api/channel", (req, res) => {
+  const viewer = ensureViewer(req.body.clientId, req.body.username);
+  if (!viewer) return res.status(400).json({ error: "clientId is required" });
+
+  const channelName = sanitizeText(req.body.channelName, "", 48);
+  if (!channelName) return res.status(400).json({ error: "Channel title is required" });
+
+  viewer.channelName = channelName;
+  viewer.channelTagline = sanitizeText(req.body.channelTagline, "", 90);
+  res.json(buildAppState(viewer));
+});
+
+app.post("/api/shows", (req, res) => {
+  const viewer = ensureViewer(req.body.clientId);
+  if (!viewer) return res.status(400).json({ error: "clientId is required" });
+  if (!viewer.channelName) return res.status(400).json({ error: "Create a channel first" });
+
+  const title = sanitizeText(req.body.title, "", 70);
+  const scheduledFor = sanitizeDate(req.body.scheduledFor);
+  const roomId = sanitizeRoomId(req.body.roomId || title);
+  const description = sanitizeText(req.body.description, "", 220);
+  const videoId = sanitizeText(req.body.videoId, "", 20);
+  const durationMinutes = Math.max(15, Math.min(480, Number(req.body.durationMinutes) || 90));
+
+  if (!title) return res.status(400).json({ error: "Show title is required" });
+  if (!scheduledFor) return res.status(400).json({ error: "Valid start time is required" });
+  if (!roomId) return res.status(400).json({ error: "Valid room slug is required" });
+
+  const show = {
+    id: crypto.randomUUID(),
+    hostId: viewer.clientId,
+    title,
+    description,
+    roomId,
+    videoId,
+    scheduledFor,
+    durationMinutes,
+    createdAt: new Date().toISOString()
+  };
+
+  shows.set(show.id, show);
+  res.json({ show: toShowResponse(show), state: buildAppState(viewer) });
+});
+
+app.post("/api/subscribe", (req, res) => {
+  const viewer = ensureViewer(req.body.clientId);
+  const hostId = sanitizeText(req.body.hostId, "", 80);
+  if (!viewer || !hostId) return res.status(400).json({ error: "clientId and hostId are required" });
+  if (hostId === viewer.clientId) return res.status(400).json({ error: "You cannot subscribe to yourself" });
+  const host = viewerProfiles.get(hostId);
+  if (!host?.channelName) return res.status(404).json({ error: "Host channel not found" });
+
+  getSubscribers(hostId).add(viewer.clientId);
+  res.json(buildAppState(viewer));
+});
+
+app.post("/api/unsubscribe", (req, res) => {
+  const viewer = ensureViewer(req.body.clientId);
+  const hostId = sanitizeText(req.body.hostId, "", 80);
+  if (!viewer || !hostId) return res.status(400).json({ error: "clientId and hostId are required" });
+
+  getSubscribers(hostId).delete(viewer.clientId);
+  res.json(buildAppState(viewer));
+});
+
+app.post("/api/shows/:showId/alert", (req, res) => {
+  const viewer = ensureViewer(req.body.clientId);
+  const show = shows.get(req.params.showId);
+  if (!viewer || !show) return res.status(404).json({ error: "Show not found" });
+  if (show.hostId !== viewer.clientId) return res.status(403).json({ error: "Only the host can send alerts" });
+
+  const subscribers = [...getSubscribers(show.hostId)];
+  const alert = {
+    id: crypto.randomUUID(),
+    hostId: show.hostId,
+    showId: show.id,
+    message: `${show.title} starts ${new Date(show.scheduledFor).toLocaleString()}. Your room link is ready.`,
+    createdAt: new Date().toISOString(),
+    deliverySummary: buildDeliverySummary(subscribers)
+  };
+  alerts.push(alert);
+  if (alerts.length > 50) alerts.splice(0, alerts.length - 50);
+
+  res.json({ alert, state: buildAppState(viewer) });
+});
+
 wss.on("connection", (socket) => {
   let roomId = null;
   let clientId = null;
@@ -86,11 +385,12 @@ wss.on("connection", (socket) => {
 
     if (msg.type === "join") {
       if (typeof msg.roomId !== "string" || typeof msg.clientId !== "string") return;
-      roomId = msg.roomId.trim();
-      clientId = msg.clientId.trim();
+      roomId = sanitizeRoomId(msg.roomId);
+      clientId = sanitizeText(msg.clientId, "", 80);
       const username = sanitizeUsername(msg.username, `Wanderer-${clientId.slice(0, 4)}`);
       if (!roomId || !clientId) return;
 
+      ensureViewer(clientId, username);
       const room = getRoom(roomId);
       room.clients.add(socket);
       socket.clientId = clientId;
@@ -195,10 +495,7 @@ wss.on("connection", (socket) => {
     }
 
     if (room.clients.size > 0) sendUserCount(room);
-
-    if (room.clients.size === 0) {
-      rooms.delete(roomId);
-    }
+    if (room.clients.size === 0) rooms.delete(roomId);
   });
 });
 
