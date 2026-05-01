@@ -9,6 +9,8 @@ const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
 const DEFAULT_PORT = Number(process.env.PORT) || 3001;
+const HEARTBEAT_TICK_MS = 3000;
+const WS_KEEPALIVE_MS = 30000;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
@@ -288,6 +290,43 @@ function seedData() {
 
 seedData();
 
+function broadcastTick(room) {
+  if (!room.state.videoId || room.clients.size === 0) return;
+  const payload = JSON.stringify({
+    type: "tick",
+    hostId: room.state.hostId,
+    state: {
+      videoId: room.state.videoId,
+      playing: room.state.playing,
+      currentTime: getProjectedTime(room.state),
+      playbackRate: room.state.playbackRate,
+      updatedAt: Date.now()
+    }
+  });
+  for (const client of room.clients) {
+    if (client.readyState !== 1) continue;
+    if (client.clientId === room.state.hostId) continue;
+    client.send(payload);
+  }
+}
+
+setInterval(() => {
+  for (const room of rooms.values()) broadcastTick(room);
+}, HEARTBEAT_TICK_MS);
+
+const wsKeepalive = setInterval(() => {
+  for (const socket of wss.clients) {
+    if (socket.isAlive === false) {
+      socket.terminate();
+      continue;
+    }
+    socket.isAlive = false;
+    try { socket.ping(); } catch {}
+  }
+}, WS_KEEPALIVE_MS);
+
+wss.on("close", () => clearInterval(wsKeepalive));
+
 app.get("/api/app-state", (req, res) => {
   const viewer = ensureViewer(req.query.clientId, req.query.username);
   if (!viewer) return res.status(400).json({ error: "clientId is required" });
@@ -402,6 +441,9 @@ app.post("/api/shows/:showId/alert", (req, res) => {
 wss.on("connection", (socket) => {
   let roomId = null;
   let clientId = null;
+
+  socket.isAlive = true;
+  socket.on("pong", () => { socket.isAlive = true; });
 
   socket.on("message", (raw) => {
     const msg = parseMessage(raw);
