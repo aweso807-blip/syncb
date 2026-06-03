@@ -1,0 +1,192 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -c server.js)",
+      "Bash(node -c public/app.js)",
+      "Bash(PORT=3010 node server.js)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3010/api/app-state?clientId=test-1)",
+      "Bash(curl -s http://localhost:3010/)",
+      "Bash(node -e \"const ws=require\\('ws'\\);const c=new ws.WebSocket\\('ws://localhost:3010'\\);let got=[];c.on\\('open',\\(\\)=>{c.send\\(JSON.stringify\\({type:'join',roomId:'test-room',clientId:'cid-a',username:'Alice'}\\)\\);setTimeout\\(\\(\\)=>{c.send\\(JSON.stringify\\({type:'ping',ts:Date.now\\(\\)}\\)\\);},100\\);}\\);c.on\\('message',\\(d\\)=>{const m=JSON.parse\\(d.toString\\(\\)\\);got.push\\(m.type\\);if\\(got.length>=3\\){console.log\\('messages:',got.join\\(','\\)\\);c.close\\(\\);process.exit\\(0\\);}}\\);setTimeout\\(\\(\\)=>{console.log\\('timeout. got:',got.join\\(','\\)\\);process.exit\\(1\\);},2500\\);\")",
+      "Bash(node -e ' *)",
+      "Bash(kill %1)",
+      "Bash(awk '{print $2}')",
+      "Bash(xargs -r kill)",
+      "Bash(PORT=3000 node server.js)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(curl -s \"http://localhost:3010/api/app-state?clientId=smoke-test\")",
+      "Bash(netstat -ano)",
+      "Bash(awk '{print $NF}')",
+      "Bash(taskkill /F /PID 40880)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3010/)",
+      "Bash(curl -s http://localhost:3010/app.js)",
+      "Bash(git config *)",
+      "Bash(npx @claude-flow*)",
+      "Bash(npx claude-flow*)",
+      "Bash(node .claude/*)",
+      "mcp__claude-flow__:*"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd /c \"IF EXIST \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" (node \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" pre-bash) ELSE (node \"%USERPROFILE%\\.claude\\helpers\\hook-handler.cjs\" pre-bash)\"",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd /c \"IF EXIST \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" (node \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" pre-edit) ELSE (node \"%USERPROFILE%\\.claude\\helpers\\hook-handler.cjs\" pre-edit)\"",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd /c \"IF EXIST \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" (node \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" post-edit) ELSE (node \"%USERPROFILE%\\.claude\\helpers\\hook-handler.cjs\" post-edit)\"",
+            "timeout": 10000
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd /c \"IF EXIST \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" (node \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" post-bash) ELSE (node \"%USERPROFILE%\\.claude\\helpers\\hook-handler.cjs\" post-bash)\"",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd /c \"IF EXIST \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" (node \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" route) ELSE (node \"%USERPROFILE%\\.claude\\helpers\\hook-handler.cjs\" route)\"",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd /c \"IF EXIST \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" (node \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" session-restore) ELSE (node \"%USERPROFILE%\\.claude\\helpers\\hook-handler.cjs\" session-restore)\"",
+            "timeout": 15000
+          },
+          {
+            "type": "command",
+            "command": "cmd /c \"IF EXIST \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\auto-memory-hook.mjs\" (node \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\auto-memory-hook.mjs\" import) ELSE (node \"%USERPROFILE%\\.claude\\helpers\\auto-memory-hook.mjs\" import)\"",
+            "timeout": 8000
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd /c \"IF EXIST \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" (node \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" session-end) ELSE (node \"%USERPROFILE%\\.claude\\helpers\\hook-handler.cjs\" session-end)\"",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd /c \"IF EXIST \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\auto-memory-hook.mjs\" (node \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\auto-memory-hook.mjs\" sync) ELSE (node \"%USERPROFILE%\\.claude\\helpers\\auto-memory-hook.mjs\" sync)\"",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "manual",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd /c \"IF EXIST \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" (node \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" compact-manual) ELSE (node \"%USERPROFILE%\\.claude\\helpers\\hook-handler.cjs\" compact-manual)\""
+          },
+          {
+            "type": "command",
+            "command": "cmd /c \"IF EXIST \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" (node \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" session-end) ELSE (node \"%USERPROFILE%\\.claude\\helpers\\hook-handler.cjs\" session-end)\"",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "auto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd /c \"IF EXIST \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" (node \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" compact-auto) ELSE (node \"%USERPROFILE%\\.claude\\helpers\\hook-handler.cjs\" compact-auto)\""
+          },
+          {
+            "type": "command",
+            "command": "cmd /c \"IF EXIST \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" (node \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" session-end) ELSE (node \"%USERPROFILE%\\.claude\\helpers\\hook-handler.cjs\" session-end)\"",
+            "timeout": 6000
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd /c \"IF EXIST \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" (node \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" status) ELSE (node \"%USERPROFILE%\\.claude\\helpers\\hook-handler.cjs\" status)\"",
+            "timeout": 3000
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd /c \"IF EXIST \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" (node \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" post-task) ELSE (node \"%USERPROFILE%\\.claude\\helpers\\hook-handler.cjs\" post-task)\"",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd /c \"IF EXIST \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" (node \"%CLAUDE_PROJECT_DIR%\\.claude\\helpers\\hook-handler.cjs\" notify) ELSE (node \"%USERPROFILE%\\.claude\\helpers\\hook-handler.cjs\" notify)\"",
+            "timeout": 3000
+          }
+        ]
+      }
+    ]
+  },
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_FLOW_V3_ENABLED": "true",
+    "CLAUDE_FLOW_HOOKS_ENABLED": "true"
+  }
+}

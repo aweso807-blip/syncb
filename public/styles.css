@@ -1,70 +1,149 @@
+/* =====================================================================
+   SyncTube Studio — Portfolio Design System
+   Dark-first · Fraunces + Geist · house curve cubic-bezier(0.22,1,0.36,1)
+   ===================================================================== */
+
 :root {
-  color-scheme: light;
-  --font-sans: "SF Pro Display", "SF Pro Text", "Segoe UI", system-ui, sans-serif;
-  --bg: #f5f5f7;
-  --bg-elevated: rgba(255, 255, 255, 0.72);
-  --bg-strong: rgba(255, 255, 255, 0.9);
-  --bg-soft: rgba(255, 255, 255, 0.54);
-  --ink: #101114;
-  --muted: #69707d;
-  --line: rgba(15, 23, 42, 0.08);
-  --line-strong: rgba(15, 23, 42, 0.12);
-  --accent: #0071e3;
-  --accent-strong: #0059b8;
-  --accent-soft: rgba(0, 113, 227, 0.12);
-  --good: #22a06b;
-  --hero-a: rgba(85, 175, 255, 0.16);
-  --hero-b: rgba(255, 167, 112, 0.16);
-  --hero-c: rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 24px 80px rgba(15, 23, 42, 0.12);
-  --shadow-md: 0 14px 42px rgba(15, 23, 42, 0.08);
-  --radius-xl: 32px;
-  --radius-lg: 24px;
-  --radius-md: 18px;
-  --radius-sm: 14px;
-}
-
-body[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0b0d12;
-  --bg-elevated: rgba(18, 20, 28, 0.76);
-  --bg-strong: rgba(18, 20, 28, 0.9);
-  --bg-soft: rgba(255, 255, 255, 0.05);
-  --ink: #f5f7fb;
-  --muted: #9da6b7;
-  --line: rgba(255, 255, 255, 0.08);
-  --line-strong: rgba(255, 255, 255, 0.12);
-  --accent: #58a6ff;
-  --accent-strong: #80bcff;
-  --accent-soft: rgba(88, 166, 255, 0.14);
-  --good: #3ccf91;
-  --hero-a: rgba(0, 113, 227, 0.22);
-  --hero-b: rgba(142, 103, 255, 0.18);
-  --hero-c: rgba(255, 255, 255, 0.04);
-  --shadow-lg: 0 24px 80px rgba(0, 0, 0, 0.42);
-  --shadow-md: 0 14px 42px rgba(0, 0, 0, 0.3);
+
+  /* ── Color tokens (dark default) ── */
+  --color-bg: #0a0a0a;
+  --color-bg-elev: #0f0f0f;
+  --color-ink: #f5f5f4;
+  --color-muted: #a8a29e;
+  --color-soft: #57534e;
+  --color-line: #1c1c1c;
+  --color-line-soft: #262626;
+  --color-accent: #3b82f6;
+  --color-accent-2: #f59e0b;
+
+  /* ── Font stacks ── */
+  --font-display: "Fraunces", "Times New Roman", serif;
+  --font-sans: "Geist", system-ui, sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", monospace;
+
+  /* ── Radius ── */
+  --radius-card: 18px;
+  --radius-sm: 12px;
+
+  /* ── House easing ── */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Light theme — supported on either html or body (FOUC script vs app.js) */
+:root[data-theme="light"],
+body[data-theme="light"] {
+  color-scheme: light;
+  --color-bg: #faf6e9;
+  --color-bg-elev: #f1ede2;
+  --color-ink: #0a0a0a;
+  --color-muted: #5b574e;
+  --color-soft: #a8a29e;
+  --color-line: #e3dfd1;
+  --color-line-soft: #ece8d9;
+  --color-accent: #1d4ed8;
+  --color-accent-2: #b45309;
+}
+
+/* ── Resets ── */
 * {
   box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scrollbar-width: none;
+}
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 html {
+  background: var(--color-bg);
+  color: var(--color-ink);
   scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-ink);
   font-family: var(--font-sans);
-  color: var(--ink);
-  background:
-    radial-gradient(circle at top left, var(--hero-a), transparent 28%),
-    radial-gradient(circle at top right, var(--hero-b), transparent 22%),
-    linear-gradient(180deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 90%, #dfe8f8 10%) 100%);
-  transition: background 240ms ease, color 240ms ease;
+  font-feature-settings: "ss01", "ss02", "cv11";
   overflow-x: hidden;
+  transition: background-color 0.7s var(--ease), color 0.7s var(--ease);
 }
+
+/* ── Grain overlay ── */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+  opacity: 0.06;
+  mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── Text selection ── */
+::selection {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+
+/* ── View transition theme swap ── */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.65s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Date/time picker icon visibility ── */
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.75;
+  cursor: pointer;
+}
+:root[data-theme="light"] input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+:root[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator,
+:root[data-theme="light"] input[type="time"]::-webkit-calendar-picker-indicator,
+body[data-theme="light"] input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+body[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator,
+body[data-theme="light"] input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: none;
+  opacity: 0.7;
+}
+
+/* =====================================================================
+   Typography utilities
+   ===================================================================== */
+
+.eyebrow,
+.panelKicker,
+.showcaseLabel {
+  margin: 0 0 0.55rem;
+  font-family: var(--font-mono);
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+/* =====================================================================
+   Form elements
+   ===================================================================== */
 
 button,
 input,
@@ -72,7 +151,6 @@ textarea {
   font: inherit;
 }
 
-button,
 input,
 textarea {
   border-radius: var(--radius-sm);
@@ -81,33 +159,35 @@ textarea {
 button {
   border: 0;
   cursor: pointer;
-  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, opacity 160ms ease;
-}
-
-button:hover:not(:disabled) {
-  transform: translateY(-1px);
+  transition: transform 0.3s var(--ease), border-color 0.3s var(--ease),
+    color 0.3s var(--ease), opacity 0.3s var(--ease);
 }
 
 button:disabled {
-  opacity: 0.56;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
 input,
 textarea {
   width: 100%;
-  border: 1px solid var(--line);
-  background: var(--bg-soft);
-  color: var(--ink);
-  padding: 0.95rem 1rem;
+  border: 1px solid var(--color-line);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  padding: 0.85rem 1rem;
   outline: none;
-  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+  transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-soft);
 }
 
 input:focus,
 textarea:focus {
-  border-color: color-mix(in srgb, var(--accent) 56%, transparent);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-accent) 22%, transparent);
 }
 
 textarea {
@@ -117,64 +197,156 @@ textarea {
 label {
   display: grid;
   gap: 0.5rem;
-  color: var(--muted);
-  font-size: 0.96rem;
+  color: var(--color-muted);
+  font-size: 0.9rem;
 }
+
+/* =====================================================================
+   Buttons — primary (solid ink, accent fill-slide) + ghost (outline)
+   ===================================================================== */
+
+.heroActions button,
+.watchControls > button,
+.chatInputRow button,
+.listActions button,
+.cardActions button,
+.stackForm button {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  padding: 0.85rem 1.4rem;
+  border-radius: 999px;
+  background: var(--color-ink);
+  color: var(--color-bg);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.heroActions button::after,
+.watchControls > button::after,
+.chatInputRow button::after,
+.listActions button::after,
+.cardActions button::after,
+.stackForm button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--color-accent);
+  transform: translateY(100%);
+  transition: transform 0.5s var(--ease);
+}
+
+.heroActions button:hover:not(:disabled)::after,
+.watchControls > button:hover:not(:disabled)::after,
+.chatInputRow button:hover:not(:disabled)::after,
+.listActions button:hover:not(:disabled)::after,
+.cardActions button:hover:not(:disabled)::after,
+.stackForm button:hover:not(:disabled)::after {
+  transform: translateY(0);
+}
+
+/* Ghost / secondary button — outlined, fills with ink on hover */
+.ghostButton {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  padding: 0.85rem 1.4rem !important;
+  border-radius: 999px;
+  background: transparent !important;
+  color: var(--color-ink) !important;
+  border: 1px solid color-mix(in oklab, var(--color-ink) 28%, transparent);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.ghostButton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--color-ink);
+  transform: translateY(100%);
+  transition: transform 0.5s var(--ease);
+}
+
+.ghostButton:hover:not(:disabled) {
+  color: var(--color-bg) !important;
+}
+
+.ghostButton:hover:not(:disabled)::after {
+  transform: translateY(0);
+}
+
+/* =====================================================================
+   Page glows (subtle accent ambience)
+   ===================================================================== */
 
 .pageGlow {
   position: fixed;
-  inset: auto;
-  width: 40vw;
-  height: 40vw;
+  width: 42vw;
+  height: 42vw;
   border-radius: 999px;
-  filter: blur(60px);
-  opacity: 0.42;
+  filter: blur(120px);
+  opacity: 0.12;
   pointer-events: none;
+  z-index: 0;
 }
 
 .pageGlowOne {
-  top: -10vw;
-  left: -6vw;
-  background: var(--hero-a);
+  top: -14vw;
+  left: -8vw;
+  background: var(--color-accent);
 }
 
 .pageGlowTwo {
-  top: 24vh;
-  right: -12vw;
-  background: var(--hero-b);
+  top: 30vh;
+  right: -14vw;
+  background: var(--color-accent-2);
 }
+
+/* =====================================================================
+   App shell
+   ===================================================================== */
 
 .appShell {
   position: relative;
   z-index: 1;
-  width: min(1440px, calc(100vw - 32px));
+  width: min(1380px, calc(100vw - 48px));
   margin: 0 auto;
-  padding: 24px 0 56px;
+  padding: 24px 0 96px;
 }
 
+/* Glass panel → flat elevated surface with hairline border */
 .glassPanel {
-  background: var(--bg-elevated);
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow-lg);
-  backdrop-filter: blur(24px) saturate(150%);
+  background: var(--color-bg-elev);
+  border: 1px solid var(--color-line-soft);
 }
 
 .topbar,
 .panel,
 .hero {
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-card);
 }
+
+/* =====================================================================
+   Topbar / Navigation
+   ===================================================================== */
 
 .topbar {
   position: sticky;
   top: 16px;
-  z-index: 8;
+  z-index: 50;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  padding: 18px 22px;
-  margin-bottom: 20px;
+  padding: 14px 20px;
+  margin-bottom: 28px;
+  background: color-mix(in oklab, var(--color-bg) 70%, transparent);
+  border: 1px solid var(--color-line-soft);
+  border-radius: 999px;
+  backdrop-filter: blur(20px);
 }
 
 .brandLockup,
@@ -186,105 +358,123 @@ label {
 }
 
 .brandMark {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 55%, white));
-  color: white;
-  font-weight: 700;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  background: var(--color-accent);
+  color: #fff;
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 144, "wght" 400, "SOFT" 100;
+  font-style: italic;
+  font-size: 1.25rem;
 }
 
-.brandLockup h1,
+.brandLockup h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 40, "wght" 400, "SOFT" 30;
+  font-size: 1.2rem;
+  letter-spacing: -0.02em;
+}
+
 .hero h2,
 .panel h3,
 .chatHeading h3 {
   margin: 0;
-  letter-spacing: -0.04em;
-}
-
-.brandLockup h1 {
-  font-size: 1.15rem;
 }
 
 .tabNav {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px;
+  gap: 4px;
+  padding: 4px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--bg-strong) 68%, transparent);
-  border: 1px solid var(--line);
+  background: color-mix(in oklab, var(--color-bg-elev) 60%, transparent);
+  border: 1px solid var(--color-line-soft);
+  backdrop-filter: blur(8px);
 }
 
-.tabButton,
-.filterChip,
-.iconButton {
-  padding: 0.72rem 1rem;
+.tabButton {
+  padding: 0.5rem 1rem;
   background: transparent;
-  color: var(--muted);
-  box-shadow: none;
+  color: var(--color-muted);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
-.tabButton.isActive,
-.filterChip.isActive,
-.iconButton {
-  background: var(--bg-strong);
-  color: var(--ink);
-  box-shadow: var(--shadow-md);
+.tabButton:hover {
+  color: var(--color-ink);
+}
+
+.tabButton.isActive {
+  background: var(--color-line-soft);
+  color: var(--color-ink);
 }
 
 .iconButton {
-  min-width: 88px;
+  min-width: 84px;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-line-soft);
+  background: color-mix(in oklab, var(--color-bg-elev) 60%, transparent);
+  color: var(--color-ink);
+  font-size: 0.85rem;
+  font-weight: 500;
+  backdrop-filter: blur(8px);
+}
+
+.iconButton:hover {
+  background: var(--color-line-soft);
 }
 
 .identityChip {
   min-width: 220px;
+  padding: 10px 16px;
+  border: 1px solid var(--color-line-soft);
+  border-radius: var(--radius-card);
+  background: var(--color-bg-elev);
 }
 
-.identityChip,
-.showcaseCard,
-.videoCard,
-.listCard,
-.channelCard,
-.miniMetric {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  background: var(--bg-strong);
-}
-
-.identityChip {
-  padding: 12px 16px;
-}
-
-.eyebrow,
-.panelKicker,
-.showcaseLabel {
-  margin: 0 0 0.35rem;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  font-size: 0.7rem;
+.identityName {
+  margin: 0;
   font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--color-ink);
 }
+
+.identityMeta {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+}
+
+/* =====================================================================
+   Hero
+   ===================================================================== */
 
 .hero {
-  padding: 28px;
-  margin-bottom: 20px;
+  padding: 40px;
+  margin-bottom: 28px;
   position: relative;
   overflow: hidden;
+  background: var(--color-bg-elev);
+  border: 1px solid var(--color-line-soft);
 }
 
 .hero::after {
   content: "";
   position: absolute;
-  inset: auto -12% -40% auto;
-  width: 420px;
-  height: 420px;
-  border-radius: 999px;
-  background: radial-gradient(circle, var(--hero-c), transparent 68%);
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 65%;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--color-accent) 6%, transparent),
+    transparent
+  );
   pointer-events: none;
 }
 
@@ -294,32 +484,37 @@ label {
 .mainLayout,
 .feedLayout {
   display: grid;
-  gap: 18px;
+  gap: 20px;
 }
 
 .heroSplit {
   grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
+  position: relative;
+  z-index: 1;
 }
 
 .heroCopyBlock {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 18px;
+  gap: 20px;
 }
 
 .hero h2 {
-  font-size: clamp(2.4rem, 5vw, 4.8rem);
-  line-height: 0.95;
-  max-width: 11ch;
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 144, "wght" 380, "SOFT" 30;
+  font-size: clamp(2.25rem, 5vw, 4.5rem);
+  line-height: 0.92;
+  letter-spacing: -0.025em;
+  max-width: 14ch;
 }
 
 .heroCopy {
-  max-width: 58ch;
+  max-width: 48ch;
   margin: 0;
-  font-size: 1.08rem;
-  line-height: 1.75;
-  color: var(--muted);
+  font-size: 1.0625rem;
+  line-height: 1.625;
+  color: var(--color-muted);
 }
 
 .heroActions,
@@ -337,43 +532,27 @@ label {
   flex-wrap: wrap;
 }
 
-.heroActions button,
-.watchControls > button,
-.chatInputRow button,
-.listActions button,
-.cardActions button,
-.stackForm button {
-  padding: 0.9rem 1.2rem;
-  background: linear-gradient(180deg, var(--accent), var(--accent-strong));
-  color: white;
-  box-shadow: 0 14px 30px color-mix(in srgb, var(--accent) 24%, transparent);
-}
-
-.ghostButton {
-  background: color-mix(in srgb, var(--accent) 10%, transparent) !important;
-  color: var(--accent) !important;
-  box-shadow: none !important;
-}
-
 .heroStats {
   margin-top: 8px;
 }
 
 .miniMetric {
   min-width: 140px;
-  padding: 14px 16px;
+  padding: 16px;
+  border: 1px solid var(--color-line-soft);
+  border-radius: var(--radius-card);
+  background: var(--color-bg);
 }
 
-.metricValue,
-.identityName {
+.metricValue {
   margin: 0;
-  font-size: 1.3rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 144, "wght" 400, "SOFT" 30;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
 }
 
 .metricLabel,
-.identityMeta,
 .subtleText,
 #status,
 #roomMeta,
@@ -383,8 +562,17 @@ label {
 .cardCopy,
 .chatHeading p {
   margin: 0;
-  color: var(--muted);
+  color: var(--color-muted);
 }
+
+.metricLabel {
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+/* =====================================================================
+   Showcase
+   ===================================================================== */
 
 .heroShowcase,
 .showcaseStack,
@@ -393,29 +581,41 @@ label {
 .cardStack,
 .videoGrid {
   display: grid;
-  gap: 14px;
+  gap: 16px;
 }
 
 .showcaseCard {
-  padding: 18px;
+  padding: 20px;
   min-height: 146px;
-  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-line-soft);
+  border-radius: var(--radius-card);
+  background: var(--color-bg);
 }
 
 .showcaseCardPrimary {
   min-height: 212px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--bg-strong) 78%, transparent), var(--bg-strong)),
-    radial-gradient(circle at top right, var(--hero-a), transparent 40%);
+  background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--color-accent) 8%, transparent),
+      transparent 60%
+    ),
+    var(--color-bg);
 }
 
+/* =====================================================================
+   Content views + panels
+   ===================================================================== */
+
 .panel {
-  padding: 22px;
+  padding: 28px;
+  border-radius: var(--radius-card);
+  background: var(--color-bg-elev);
+  border: 1px solid var(--color-line-soft);
 }
 
 .contentView {
   display: none;
-  animation: fadeUp 280ms ease;
+  animation: fadeUp 0.6s var(--ease);
 }
 
 .contentView.isVisible {
@@ -431,7 +631,7 @@ label {
 }
 
 .createSecondary {
-  margin-top: 18px;
+  margin-top: 20px;
 }
 
 .widePanel {
@@ -445,30 +645,46 @@ label {
   justify-content: space-between;
   align-items: start;
   gap: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+}
+
+.panel h3,
+.chatHeading h3,
+.watchHeader h3 {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 144, "wght" 400, "SOFT" 30;
+  font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
 }
 
 .stackForm,
 .previewBlock {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .toggle {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 0.72rem 0.9rem;
+  padding: 0.6rem 0.9rem;
   border-radius: 999px;
-  color: var(--ink);
-  background: var(--bg-soft);
-  border: 1px solid var(--line);
+  color: var(--color-ink);
+  background: var(--color-bg);
+  border: 1px solid var(--color-line-soft);
+  font-size: 0.85rem;
 }
 
 .toggle input {
   width: auto;
   margin: 0;
+  accent-color: var(--color-accent);
 }
+
+/* =====================================================================
+   Feed
+   ===================================================================== */
 
 .feedLayout {
   grid-template-columns: minmax(0, 1.5fr) 360px;
@@ -477,75 +693,98 @@ label {
 
 .feedSidebar {
   display: grid;
-  gap: 18px;
+  gap: 20px;
+}
+
+.feedToolbar {
+  margin-bottom: 16px;
 }
 
 .videoGrid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+/* =====================================================================
+   Cards
+   ===================================================================== */
+
 .videoCard,
 .channelCard,
 .listCard {
-  padding: 16px;
-  box-shadow: var(--shadow-md);
+  padding: 18px;
+  border: 1px solid var(--color-line-soft);
+  border-radius: var(--radius-card);
+  background: var(--color-bg);
+  transition: border-color 0.4s var(--ease);
+}
+
+.videoCard:hover,
+.channelCard:hover,
+.listCard:hover {
+  border-color: var(--color-line);
 }
 
 .videoCard {
   display: grid;
-  gap: 14px;
+  gap: 16px;
+  overflow: hidden;
 }
 
 .videoThumb {
   position: relative;
   aspect-ratio: 16 / 9;
-  border-radius: 18px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--accent) 36%, transparent), transparent),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.26)),
-    #161a22;
+  background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-accent) 40%, transparent),
+      transparent 70%
+    ),
+    #111317;
 }
 
 .videoThumb::before {
   content: "";
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(180deg, transparent 35%, rgba(0, 0, 0, 0.5) 100%);
+  background: linear-gradient(180deg, transparent 35%, rgba(0, 0, 0, 0.55) 100%);
 }
 
 .thumbPlay {
   position: absolute;
-  top: 16px;
-  left: 16px;
-  width: 42px;
-  height: 42px;
+  top: 14px;
+  left: 14px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
-  color: white;
-  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  backdrop-filter: blur(10px);
+  z-index: 1;
 }
 
 .thumbDuration,
 .thumbAudience {
   position: absolute;
-  bottom: 14px;
-  padding: 0.36rem 0.62rem;
+  bottom: 12px;
+  padding: 0.3rem 0.6rem;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.58);
-  color: white;
-  font-size: 0.8rem;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  z-index: 1;
 }
 
 .thumbDuration {
-  right: 14px;
+  right: 12px;
 }
 
 .thumbAudience {
-  left: 14px;
+  left: 12px;
 }
 
 .cardTop,
@@ -556,20 +795,48 @@ label {
   gap: 12px;
 }
 
+.cardTitle,
+.listTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 144, "wght" 400, "SOFT" 30;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.cardMeta,
+.listMeta {
+  font-size: 0.84rem;
+  margin-top: 0.25rem;
+}
+
+.cardCopy {
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+/* =====================================================================
+   Pills / tags / mono labels
+   ===================================================================== */
+
 .pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.34rem 0.72rem;
+  padding: 0.3rem 0.7rem;
   border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 0.8rem;
+  background: color-mix(in oklab, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
 }
 
 .pill.live {
-  background: color-mix(in srgb, var(--good) 14%, transparent);
-  color: var(--good);
+  background: color-mix(in oklab, #34d399 14%, transparent);
+  color: #34d399;
 }
 
 .genrePills {
@@ -579,37 +846,69 @@ label {
 }
 
 .genreTag {
-  padding: 0.32rem 0.62rem;
+  padding: 0.3rem 0.6rem;
   border-radius: 999px;
-  background: var(--bg-soft);
-  border: 1px solid var(--line);
-  font-size: 0.82rem;
-  color: var(--muted);
+  background: var(--color-bg-elev);
+  border: 1px solid var(--color-line-soft);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--color-muted);
 }
 
 .filterChip {
-  border: 1px solid var(--line);
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--color-line-soft);
   border-radius: 999px;
+  background: transparent;
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
 }
 
-.cardTitle,
-.listTitle {
-  margin: 0;
-  font-size: 1.08rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+.filterChip:hover {
+  color: var(--color-ink);
+  border-color: var(--color-line);
+}
+
+.filterChip.isActive {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
 }
 
 .emptyState {
-  padding: 18px;
-  border-radius: var(--radius-md);
-  border: 1px dashed var(--line-strong);
-  color: var(--muted);
-  background: color-mix(in srgb, var(--bg-soft) 85%, transparent);
+  padding: 20px;
+  border-radius: var(--radius-card);
+  border: 1px dashed var(--color-line);
+  color: var(--color-muted);
+  background: var(--color-bg);
+  font-size: 0.9rem;
 }
 
+.noticeText {
+  margin: 0;
+  color: var(--color-soft);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+}
+
+/* =====================================================================
+   Watch room
+   ===================================================================== */
+
 .watchSection {
-  padding: 24px;
+  padding: 28px;
+}
+
+#status,
+#roomMeta {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .watchControls {
@@ -626,11 +925,11 @@ label {
 }
 
 .watchMetaBar {
-  margin: 16px 0;
-  padding: 14px 16px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--line);
-  background: var(--bg-soft);
+  margin: 20px 0;
+  padding: 16px;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-line-soft);
+  background: var(--color-bg);
 }
 
 .mainLayout {
@@ -640,10 +939,9 @@ label {
 
 .playerWrap {
   overflow: hidden;
-  border-radius: 28px;
-  background: #090b10;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-card);
+  background: #050608;
+  border: 1px solid var(--color-line-soft);
 }
 
 #player {
@@ -661,38 +959,47 @@ label {
   min-height: 0;
   flex: 1;
   overflow-y: auto;
-  padding: 14px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--line);
-  background: color-mix(in srgb, var(--bg-strong) 85%, transparent);
+  padding: 16px;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-line-soft);
+  background: var(--color-bg);
 }
 
 #chatMessages p {
   margin: 0 0 10px;
   line-height: 1.5;
   word-break: break-word;
-}
-
-.feedToolbar {
-  margin-bottom: 14px;
-}
-
-.noticeText {
-  margin: 0;
-  color: var(--muted);
   font-size: 0.92rem;
 }
+
+/* =====================================================================
+   Keyframes
+   ===================================================================== */
 
 @keyframes fadeUp {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px color-mix(in oklab, currentColor 30%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 9px color-mix(in oklab, currentColor 0%, transparent);
+  }
+}
+
+/* =====================================================================
+   Responsive
+   ===================================================================== */
 
 @media (max-width: 1200px) {
   .heroSplit,
@@ -713,6 +1020,7 @@ label {
     position: static;
     flex-direction: column;
     align-items: stretch;
+    border-radius: var(--radius-card);
   }
 
   .topbarActions,
@@ -734,31 +1042,20 @@ label {
 
 @media (max-width: 720px) {
   .appShell {
-    width: min(100vw - 18px, 1440px);
+    width: min(100vw - 24px, 1380px);
     padding-top: 18px;
-    padding-bottom: 28px;
+    padding-bottom: 48px;
   }
 
   .hero,
   .panel,
-  .topbar {
-    border-radius: 24px;
-    padding: 18px;
-  }
-
-  .hero h2 {
-    font-size: 2.5rem;
+  .watchSection {
+    padding: 22px;
   }
 
   .watchControls > button,
   .chatInputRow button,
   .stackForm button {
     width: 100%;
-  }
-
-  .tabButton,
-  .filterChip,
-  .iconButton {
-    padding: 0.68rem 0.85rem;
   }
 }
