@@ -53,7 +53,7 @@ function getOrCreateUsername() {
 function getInitialTheme() {
   const saved = localStorage.getItem("syncb.theme");
   if (saved === "light" || saved === "dark") return saved;
-  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return "light";
 }
 
 function getBackendWsUrl() {

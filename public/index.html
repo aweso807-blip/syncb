@@ -4,26 +4,23 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>SyncTube Studio</title>
-    <!-- Prevent FOUC: set theme before paint -->
+    <!-- Prevent FOUC: set theme before paint (light is the default Knudge look) -->
     <script>
       try {
-        var t = localStorage.getItem("syncb.theme");
-        if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+        var t = localStorage.getItem("syncb.theme") || "light";
+        document.documentElement.setAttribute("data-theme", t);
       } catch (e) {}
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,100..900,0..100;1,9..144,100..900,0..100&family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
     />
     <link rel="stylesheet" href="./styles.css" />
     <script src="https://www.youtube.com/iframe_api"></script>
   </head>
   <body>
-    <div class="pageGlow pageGlowOne"></div>
-    <div class="pageGlow pageGlowTwo"></div>
-
     <main class="appShell">
       <header class="topbar glassPanel">
         <div class="brandLockup">
